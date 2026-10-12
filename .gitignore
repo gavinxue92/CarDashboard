@@ -36,6 +36,11 @@ coverage/
 *.key
 secrets.json
 
+# ---------- WhatsApp 登录凭证（等价于密钥，绝不能入库） ----------
+.wa-auth/
+*.wa-auth/
+wa-auth/
+
 # ---------- Python ----------
 __pycache__/
 *.py[cod]
