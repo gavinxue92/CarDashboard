@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>海外汽车服务工作台 · 原型</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 13px; color: #1b1f27; background: #eef0f4;
+}
+.app { display: flex; height: 100vh; min-height: 620px; overflow: hidden; }
+
+.rail { width: 212px; flex: 0 0 212px; background: #1c2029; display: flex; flex-direction: column; padding: 14px 10px 10px; }
+.brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 12px; color: #fff; font-size: 13px; font-weight: 600; }
+.brand .dot { width: 7px; height: 7px; border-radius: 50%; background: #3fb950; flex: 0 0 7px; }
+.nav-group { padding: 11px 8px 5px; font-size: 11px; color: #5d6675; }
+.nav-item { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 7px 8px; border-radius: 8px; font-size: 13px; color: #c2c9d6; cursor: pointer; }
+.nav-item:hover { background: #252b36; }
+.nav-item.active { background: #2f6fed; color: #fff; }
+.nav-item.dim { color: #6b7484; cursor: not-allowed; }
+.nav-item.dim:hover { background: transparent; }
+.tag { font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #2b313d; color: #7c8698; flex: 0 0 auto; }
+.rail-sep { margin: 12px 8px 4px; border-top: 1px solid #2b313d; }
+.rail-foot { margin-top: auto; padding: 8px; font-size: 11px; color: #5d6675; line-height: 1.6; }
+
+.main { flex: 1; display: flex; min-width: 0; }
+
+.col-list { width: 284px; flex: 0 0 284px; background: #fff; border-right: 1px solid #e6e8ec; display: flex; flex-direction: column; }
+.list-head { padding: 12px 14px 10px; border-bottom: 1px solid #eef0f4; }
+.search { background: #f4f5f8; border-radius: 8px; padding: 7px 10px; color: #98a1b0; font-size: 12px; }
+.filters { display: flex; gap: 6px; margin-top: 10px; }
+.chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid #e6e8ec; color: #5a6472; cursor: pointer; }
+.chip.on { background: #2f6fed; border-color: #2f6fed; color: #fff; }
+.list-body { flex: 1; overflow-y: auto; }
+.conv { padding: 11px 14px; border-bottom: 1px solid #f4f5f8; cursor: pointer; }
+.conv:hover { background: #fafbfc; }
+.conv.on { background: #f2f6ff; box-shadow: inset 2px 0 0 #2f6fed; }
+.conv-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.conv-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-time { font-size: 11px; color: #98a1b0; flex: 0 0 auto; }
+.conv-meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+.conv-country { font-size: 12px; color: #5a6472; }
+.badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; flex: 0 0 auto; }
+.badge.open { background: #e8f6ec; color: #1f7a3d; }
+.badge.closed { background: #fdf0e3; color: #b4560c; }
+.unread { background: #2f6fed; color: #fff; font-size: 10px; border-radius: 999px; padding: 1px 6px; }
+.conv-preview { font-size: 12px; color: #98a1b0; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.col-work { flex: 1; min-width: 0; background: #f6f7f9; display: flex; flex-direction: column; }
+.work-head { background: #fff; border-bottom: 1px solid #e6e8ec; padding: 13px 18px 0; }
+.work-title { display: flex; align-items: baseline; gap: 10px; }
+.work-name { font-size: 15px; font-weight: 600; }
+.work-sub { font-size: 12px; color: #5a6472; }
+.win { margin-left: auto; font-size: 12px; }
+.win.open { color: #1f7a3d; }
+.win.closed { color: #b4560c; }
+.tabs { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
+.tab { padding-bottom: 9px; font-size: 13px; color: #7b8494; cursor: pointer; border-bottom: 2px solid transparent; }
+.tab.on { color: #1b1f27; font-weight: 600; border-bottom-color: #2f6fed; }
+.contrast { margin-left: auto; padding-bottom: 9px; font-size: 12px; color: #2f6fed; cursor: pointer; }
+.contrast.off { color: #98a1b0; }
+.work-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+.msg { max-width: 74%; margin-bottom: 10px; }
+.msg.in { margin-right: auto; }
+.msg.out { margin-left: auto; }
+.bubble { padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.55; word-break: break-word; }
+.msg.in .bubble { background: #fff; border: 1px solid #e6e8ec; }
+.msg.out .bubble { background: #2f6fed; color: #fff; }
+.msg-alt { font-size: 11px; color: #98a1b0; margin-top: 5px; line-height: 1.6; }
+.msg.out .msg-alt { text-align: right; }
+.msg-alt .lnk { color: #2f6fed; cursor: pointer; }
+.msg-alt .label { color: #b8bfcb; }
+.pane { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 4px 16px; }
+.field { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f5f8; font-size: 13px; }
+.field:last-child { border-bottom: 0; }
+.field .k { width: 92px; flex: 0 0 92px; color: #7b8494; }
+.field .v { color: #1b1f27; }
+.field .v.muted { color: #b8bfcb; }
+.pane-title { font-size: 12px; color: #7b8494; margin: 0 0 4px; padding-top: 14px; }
+.notice { background: #fdf7ec; border: 1px solid #f2e2c4; color: #8a6212; border-radius: 10px; padding: 12px 14px; font-size: 12px; line-height: 1.7; margin-top: 12px; }
+.empty { text-align: center; color: #98a1b0; padding: 30px 10px; font-size: 13px; }
+.quick { display: flex; gap: 6px; padding: 10px 18px 0; background: #fff; border-top: 1px solid #e6e8ec; }
+.qbtn { font-size: 12px; padding: 5px 10px; border: 1px solid #e6e8ec; border-radius: 8px; color: #5a6472; cursor: pointer; }
+.qbtn:hover { border-color: #c9cfd9; }
+.composer { display: flex; gap: 10px; align-items: center; padding: 10px 18px 8px; background: #fff; }
+.composer input { flex: 1; border: 1px solid #e6e8ec; border-radius: 8px; padding: 10px 12px; font-size: 13px; outline: none; font-family: inherit; }
+.composer input:focus { border-color: #2f6fed; }
+.btn { background: #2f6fed; color: #fff; border: 0; border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; font-family: inherit; }
+.btn:hover { background: #2560d8; }
+.hint { font-size: 11px; color: #98a1b0; padding: 0 18px 12px; background: #fff; }
+
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #1c2029; color: #fff; padding: 9px 16px; border-radius: 8px; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity .18s; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="dot"></span><span>海外汽车服务工作台</span></div>
+
+    <div class="nav-group">沟通</div>
+    <div class="nav-item active" data-nav="会话">客户会话</div>
+
+    <div class="nav-group">业务</div>
+    <div class="nav-item dim" data-reserved="成本精算">成本精算<span class="tag">预留</span></div>
+    <div class="nav-item dim" data-reserved="素材库">素材库<span class="tag">预留</span></div>
+
+    <div class="nav-group">账号</div>
+    <div class="nav-item dim" data-reserved="WA 账号矩阵">WA 账号矩阵<span class="tag">预留</span></div>
+    <div class="nav-item dim" data-reserved="设置中心">设置中心<span class="tag">预留</span></div>
+
+    <div class="rail-sep"></div>
+    <div class="nav-group">预留（未开放）</div>
+    <div class="nav-item dim" data-reserved="获客管线">获客管线</div>
+    <div class="nav-item dim" data-reserved="WhatsApp 群发">WhatsApp 群发</div>
+    <div class="nav-item dim" data-reserved="PI 合同">PI 合同</div>
+    <div class="nav-item dim" data-reserved="通话翻译">通话翻译</div>
+
+    <div class="rail-foot">
+      v2 原型 · 只实现「客户会话」<br>
+      灰色项均为预留入口
+    </div>
+  </aside>
+
+  <div class="main">
+    <section class="col-list">
+      <div class="list-head">
+        <div class="search">搜索客户 / 公司 / 号码</div>
+        <div class="filters">
+          <span class="chip on" data-filter="all">全部</span>
+          <span class="chip" data-filter="unread">未读</span>
+          <span class="chip" data-filter="closed">窗口已关</span>
+        </div>
+      </div>
+      <div class="list-body" id="list"></div>
+    </section>
+
+    <section class="col-work">
+      <div class="work-head">
+        <div class="work-title">
+          <span class="work-name" id="wName">—</span>
+          <span class="work-sub" id="wSub"></span>
+          <span class="win" id="wWin"></span>
+        </div>
+        <div class="tabs">
+          <span class="tab on" data-tab="chat">对话</span>
+          <span class="tab" data-tab="profile">客户档案</span>
+          <span class="tab" data-tab="cost">成本精算</span>
+          <span class="contrast off" id="contrast">对照：关</span>
+        </div>
+      </div>
+      <div class="work-body" id="body"></div>
+      <div class="quick" id="quick">
+        <span class="qbtn" data-reserved="样板车">样板车</span>
+        <span class="qbtn" data-reserved="素材库">素材库</span>
+        <span class="qbtn" data-reserved="PI 合同">PI 合同</span>
+        <span class="qbtn" data-reserved="地址">地址</span>
+      </div>
+      <div class="composer">
+        <input id="input" placeholder="输入消息（中文写，自动译出）">
+        <button class="btn" id="send">发送</button>
+      </div>
+      <div class="hint">演示环境：翻译由内置词表模拟，未接真实模型</div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const convs = [
+  { id: 'c1', name: 'Ahmed Trading Ltd', country: '尼日利亚', city: '拉各斯', stage: '询价中', winH: 21, unread: 2,
+    preview: '付款方式有什么要求吗？', time: '19:01', account: '销售 A 号', first: '2026-09-18', tags: '重卡 · HOWO' },
+  { id: 'c2', name: 'Musa Logistics', country: '加纳', city: '阿克拉', stage: '已报价', winH: 0, unread: 0,
+    preview: '需要重新发模板消息触达', time: '17:26', account: '销售 B 号', first: '2026-08-30', tags: '重卡 · SHACMAN' },
+  { id: 'c3', name: 'Kofi Auto Parts', country: '尼日利亚', city: '卡诺', stage: '老客户', winH: 4, unread: 0,
+    preview: 'How are you doing', time: '05:14', account: '销售 A 号', first: '2026-03-11', tags: '配件' },
+  { id: 'c4', name: 'Tunde Motors', country: '尼日利亚', city: '阿布贾', stage: '首询', winH: 23, unread: 1,
+    preview: 'Please send me your price list', time: '昨天', account: '销售 C 号', first: '2026-10-11', tags: '重卡' },
+  { id: 'c5', name: 'Zawadi Imports', country: '坦桑尼亚', city: '达累斯萨拉姆', stage: '询价中', winH: 0, unread: 0,
+    preview: '右舵车你们有吗？', time: '昨天', account: '销售 B 号', first: '2026-09-02', tags: '重卡' }
+];
+
+const messages = {
+  c1: [
+    { dir: 'in',  zh: '这款车型可以升级吗？', en: 'Is this model available for upgrade?', time: '18:54' },
+    { dir: 'out', zh: '可以升级双悬挂系统，需要额外 1,000 USD。', en: 'This model can be upgraded to a dual-suspension system, but it costs an additional 1,000 USD.', time: '18:54' },
+    { dir: 'out', zh: '也可以直接选这款，稍贵一些，24,600 USD。', en: 'You can also choose this one directly; it is a bit more expensive, costing 24,600 USD.', time: '18:57' },
+    { dir: 'in',  zh: '付款方式有什么要求吗？', en: 'Do you have any requirements for the payment terms?', time: '19:01' }
+  ],
+  c2: [
+    { dir: 'out', zh: '这是 FOB 报价单，请查收。', en: 'Here is the FOB quotation, please check.', time: '17:20' },
+    { dir: 'in',  zh: '收到了，我明天回复你。', en: 'Got it, I will reply to you tomorrow.', time: '17:26' }
+  ],
+  c3: [
+    { dir: 'in',  zh: '你好，最近怎么样？', en: 'How are you doing', time: '05:14' }
+  ],
+  c4: [
+    { dir: 'in',  zh: '请把你们的价目表发给我。', en: 'Please send me your price list', time: '昨天' }
+  ],
+  c5: [
+    { dir: 'in',  zh: '右舵车你们有吗？', en: 'Do you have right-hand drive trucks?', time: '昨天' }
+  ]
+};
+
+const dict = {
+  '你好': 'Hello.',
+  '收到': 'Received, thanks.',
+  '这款车可以升级双悬挂系统': 'This model can be upgraded with a dual-suspension system.',
+  '这个价格包含运费吗': 'Does this price include freight?',
+  '我们支持 FOB 和 CIF': 'We support both FOB and CIF.'
+};
+
+const state = { current: 'c1', tab: 'chat', filter: 'all', contrast: false, revealed: {} };
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg + '：尚未开放，仅为预留入口';
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function visibleConvs() {
+  if (state.filter === 'unread') return convs.filter(c => c.unread > 0);
+  if (state.filter === 'closed') return convs.filter(c => c.winH === 0);
+  return convs;
+}
+
+function renderList() {
+  const box = document.getElementById('list');
+  const items = visibleConvs();
+  if (!items.length) {
+    box.innerHTML = '<div class="empty">没有符合条件的会话</div>';
+    return;
+  }
+  box.innerHTML = items.map(c => {
+    const win = c.winH > 0
+      ? '<span class="badge open">窗口内 ' + c.winH + 'h</span>'
+      : '<span class="badge closed">窗口已关</span>';
+    const un = c.unread > 0 ? '<span class="unread">' + c.unread + '</span>' : '';
+    return '<div class="conv' + (c.id === state.current ? ' on' : '') + '" data-id="' + c.id + '">' +
+      '<div class="conv-top"><span class="conv-name">' + c.name + '</span>' +
+      '<span class="conv-time">' + c.time + ' ' + un + '</span></div>' +
+      '<div class="conv-meta"><span class="conv-country">' + c.country + ' · ' + c.stage + '</span>' + win + '</div>' +
+      '<div class="conv-preview">' + c.preview + '</div>' +
+      '</div>';
+  }).join('');
+  box.querySelectorAll('.conv').forEach(el => {
+    el.addEventListener('click', () => {
+      state.current = el.dataset.id;
+      state.revealed = {};
+      renderList();
+      renderWork();
+    });
+  });
+}
+
+function altLabel(m) { return m.dir === 'in' ? '原文' : '译文'; }
+
+function renderChat(c) {
+  const list = messages[c.id] || [];
+  if (!list.length) return '<div class="empty">还没有消息</div>';
+  return list.map((m, i) => {
+    const key = c.id + '-' + i;
+    const shown = state.contrast || state.revealed[key];
+    const alt = altLabel(m);
+    let altHtml;
+    if (shown) {
+      altHtml = '<span class="label">' + alt + '：</span>' + m.en +
+        (state.contrast ? '' : ' <span class="lnk" data-key="' + key + '">收起</span>');
+    } else {
+      altHtml = '<span class="lnk" data-key="' + key + '">查看' + alt + '</span>';
+    }
+    return '<div class="msg ' + m.dir + '"><div class="bubble">' + m.zh + '</div>' +
+      '<div class="msg-alt">' + altHtml + '</div></div>';
+  }).join('');
+}
+
+function renderProfile(c) {
+  return '<div class="pane">' +
+    row('客户 / 公司', c.name) +
+    row('国家 / 城市', c.country + ' · ' + c.city) +
+    row('意向阶段', c.stage) +
+    row('所属账号', c.account) +
+    row('首次联系', c.first) +
+    row('标签', c.tags) +
+    '</div>' +
+    '<p class="pane-title">结构化字段（业务模块的输入）</p>' +
+    '<div class="pane">' +
+    row('目的国', c.country) +
+    row('车型 / 品牌', '<span class="v muted">待从会话中抽取</span>', true) +
+    row('车龄 / 排放', '<span class="v muted">待抽取</span>', true) +
+    row('预算', '<span class="v muted">待抽取</span>', true) +
+    '</div>' +
+    '<div class="notice">这四个字段是「业务 → 成本精算」的输入。今天先把位置留出来，等成本精算模块上线时直接消费。</div>';
+}
+
+function row(k, v, muted) {
+  return '<div class="field"><span class="k">' + k + '</span><span class="v' + (muted ? '' : '') + '">' + v + '</span></div>';
+}
+
+function renderCost() {
+  return '<div class="empty">成本精算尚未开放</div>' +
+    '<div class="notice">预留入口：等本模块上线后，这里会按「目的国 + 车型 + 车龄」计算落地价（关税 / VAT / 认证 / 海运 / 清关），' +
+    '并把结果一键插入右侧对话。国家规则将做成配置表，加国家等于加数据。</div>';
+}
+
+function renderWork() {
+  const c = convs.find(x => x.id === state.current);
+  document.getElementById('wName').textContent = c.name;
+  document.getElementById('wSub').textContent = c.country + ' · ' + c.city + ' · ' + c.stage;
+  const winEl = document.getElementById('wWin');
+  if (c.winH > 0) {
+    winEl.textContent = '窗口剩 ' + c.winH + 'h · 可自由回复';
+    winEl.className = 'win open';
+  } else {
+    winEl.textContent = '窗口已关 · 需模板消息触达';
+    winEl.className = 'win closed';
+  }
+
+  let html = '';
+  if (state.tab === 'chat') html = renderChat(c);
+  else if (state.tab === 'profile') html = renderProfile(c);
+  else html = renderCost();
+  document.getElementById('body').innerHTML = html;
+
+  document.getElementById('quick').style.display = state.tab === 'chat' ? 'flex' : 'none';
+  document.querySelector('.composer').style.display = state.tab === 'chat' ? 'flex' : 'none';
+  document.querySelector('.hint').style.display = state.tab === 'chat' ? 'block' : 'none';
+
+  document.querySelectorAll('.msg-alt .lnk').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.dataset.key;
+      state.revealed[k] = !state.revealed[k];
+      renderWork();
+    });
+  });
+}
+
+function translate(zh) {
+  const t = zh.trim();
+  if (dict[t]) return dict[t];
+  return '（演示：此处显示自动翻译结果）';
+}
+
+function send() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!messages[state.current]) messages[state.current] = [];
+  messages[state.current].push({ dir: 'out', zh: text, en: translate(text), time: '刚刚' });
+  input.value = '';
+  renderWork();
+  const body = document.getElementById('body');
+  body.scrollTop = body.scrollHeight;
+}
+
+document.querySelectorAll('.chip').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+    el.classList.add('on');
+    state.filter = el.dataset.filter;
+    renderList();
+  });
+});
+
+document.querySelectorAll('.tab').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    el.classList.add('on');
+    state.tab = el.dataset.tab;
+    renderWork();
+  });
+});
+
+document.getElementById('contrast').addEventListener('click', () => {
+  state.contrast = !state.contrast;
+  const el = document.getElementById('contrast');
+  el.textContent = '对照：' + (state.contrast ? '开' : '关');
+  el.className = 'contrast' + (state.contrast ? '' : ' off');
+  renderWork();
+});
+
+document.querySelectorAll('[data-reserved]').forEach(el => {
+  el.addEventListener('click', () => toast(el.dataset.reserved));
+});
+
+document.getElementById('send').addEventListener('click', send);
+document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+
+renderList();
+renderWork();
+</script>
+</body>
+</html>
