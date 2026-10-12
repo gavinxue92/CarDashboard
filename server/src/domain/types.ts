@@ -64,3 +64,13 @@ export interface NormalizedMessage {
 export function isGroupChat(msg: Pick<NormalizedMessage, 'chatType'>): boolean {
   return msg.chatType === 'group';
 }
+
+/**
+ * 翻译状态。属于领域概念，定义在此以便存储层与翻译层共用而互不依赖。
+ *
+ * - `pending` —— 有原文，等待翻译
+ * - `done`    —— 已产出译文
+ * - `skipped` —— 判定无需翻译（无文本 / 同语言 / 未指定目标语言）
+ * - `failed`  —— 翻译失败。**原文仍在，消息不丢**
+ */
+export type TranslationStatus = 'pending' | 'done' | 'skipped' | 'failed';

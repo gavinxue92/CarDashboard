@@ -1,4 +1,12 @@
-import type { ChatType, Direction, MediaRef, MessageOrigin } from '../domain/types.js';
+import type {
+  ChatType,
+  Direction,
+  MediaRef,
+  MessageOrigin,
+  TranslationStatus,
+} from '../domain/types.js';
+
+export type { TranslationStatus };
 
 /* ------------------------------------------------------------------ *
  * 实体
@@ -48,8 +56,6 @@ export interface ConversationRecord {
   createdAt: number;
 }
 
-export type TranslationStatus = 'pending' | 'done' | 'skipped' | 'failed';
-
 /**
  * 一条消息。**原文与译文分列存储，永不合并。**
  * 只存译文的话，客户投诉「你当时不是这么说的」时无从追溯。
@@ -80,6 +86,11 @@ export interface MessageRecord {
 
 /* ------------------------------------------------------------------ *
  * 输入类型
+ *
+ * ⚠️ **补丁语义**（所有 upsert 一致）：
+ *   - 字段为 `undefined` → **不修改**原值
+ *   - 字段为 `null`      → **清空**该字段
+ * 二者必须区分，否则「把客户语言清掉」这类操作无法表达。
  * ------------------------------------------------------------------ */
 
 export interface UpsertChannelInput {
