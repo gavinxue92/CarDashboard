@@ -1,0 +1,73 @@
+# ---------- 依赖 ----------
+node_modules/
+.pnpm-store/
+vendor/
+__pypackages__/
+
+# ---------- 构建产物 ----------
+dist/
+build/
+out/
+release/
+*.tsbuildinfo
+.target/
+.venv/
+venv/
+env/
+
+# ---------- 日志与缓存 ----------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.cache/
+.parcel-cache/
+.temp/
+tmp/
+coverage/
+.nyc_output/
+
+# ---------- 环境变量与密钥 ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---------- 硬件 / 嵌入式 ----------
+*.hex
+*.bin
+*.elf
+*.map
+*.o
+*.a
+*.d
+build/*.uf2
+
+# ---------- 编辑器与 IDE ----------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+
+# ---------- 操作系统 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# ---------- 工具 ----------
+.workbuddy/
