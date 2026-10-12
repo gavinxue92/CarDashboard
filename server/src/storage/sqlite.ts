@@ -107,9 +107,9 @@ export class SqliteRepository implements Repository {
     const existing = await this.getChannel(input.id);
     const rec: ChannelRecord = {
       id: input.id,
-      label: input.label ?? existing?.label ?? input.id,
-      phoneNumber: input.phoneNumber ?? existing?.phoneNumber ?? null,
-      active: input.active ?? existing?.active ?? true,
+      label: pick(input.label, existing?.label ?? input.id),
+      phoneNumber: pick(input.phoneNumber, existing?.phoneNumber ?? null),
+      active: pick(input.active, existing?.active ?? true),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
@@ -124,7 +124,9 @@ export class SqliteRepository implements Repository {
            updated_at = excluded.updated_at`,
       )
       .run(rec.id, rec.label, rec.phoneNumber, rec.active ? 1 : 0, rec.createdAt, rec.updatedAt);
-    return rec;
+    const saved = await this.getChannel(input.id);
+    if (!saved) throw new Error(`账号写入后读回失败：${input.id}`);
+    return saved;
   }
 
   async getChannel(id: string): Promise<ChannelRecord | null> {
@@ -146,12 +148,13 @@ export class SqliteRepository implements Repository {
       id: existing?.id ?? this.ids.next(),
       channelId: input.channelId,
       waId: input.waId,
-      name: input.name ?? existing?.name ?? null,
-      country: input.country ?? existing?.country ?? null,
-      language: input.language ?? existing?.language ?? null,
+      name: pick(input.name, existing?.name ?? null),
+      country: pick(input.country, existing?.country ?? null),
+      language: pick(input.language, existing?.language ?? null),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
+    // 不更新 id：并发时后到的一次会变成对已存在行的 UPDATE，id 必须保持先到者
     this.db
       .prepare(
         `INSERT INTO contacts (id, channel_id, wa_id, name, country, language, created_at, updated_at)
@@ -172,7 +175,9 @@ export class SqliteRepository implements Repository {
         rec.createdAt,
         rec.updatedAt,
       );
-    return rec;
+    const saved = await this.findContactByWaId(input.channelId, input.waId);
+    if (!saved) throw new Error(`客户写入后读回失败：${input.channelId}/${input.waId}`);
+    return saved;
   }
 
   async getContact(id: string): Promise<ContactRecord | null> {
@@ -200,24 +205,33 @@ export class SqliteRepository implements Repository {
       }
       return existing;
     }
-    const rec: ConversationRecord = {
-      id: this.ids.next(),
-      channelId: input.channelId,
-      chatId: input.chatId,
-      chatType: input.chatType,
-      contactId: input.contactId ?? null,
-      lastMessageAt: null,
-      unreadCount: 0,
-      createdAt: this.clock.now(),
-    };
+
+    // ON CONFLICT DO NOTHING + 回读：并发的两条入站消息不会因唯一约束而失败
     this.db
       .prepare(
         `INSERT INTO conversations
            (id, channel_id, chat_id, chat_type, contact_id, last_message_at, unread_count, created_at)
-         VALUES (?, ?, ?, ?, ?, NULL, 0, ?)`,
+         VALUES (?, ?, ?, ?, ?, NULL, 0, ?)
+         ON CONFLICT(channel_id, chat_id) DO NOTHING`,
       )
-      .run(rec.id, rec.channelId, rec.chatId, rec.chatType, rec.contactId, rec.createdAt);
-    return rec;
+      .run(
+        this.ids.next(),
+        input.channelId,
+        input.chatId,
+        input.chatType,
+        input.contactId ?? null,
+        this.clock.now(),
+      );
+
+    const saved = await this.findConversationByChat(input.channelId, input.chatId);
+    if (!saved) throw new Error(`会话写入后读回失败：${input.channelId}/${input.chatId}`);
+    if (input.contactId && !saved.contactId) {
+      await this.db
+        .prepare('UPDATE conversations SET contact_id = ? WHERE id = ?')
+        .run(input.contactId, saved.id);
+      saved.contactId = input.contactId;
+    }
+    return saved;
   }
 
   async getConversation(id: string): Promise<ConversationRecord | null> {
@@ -251,13 +265,19 @@ export class SqliteRepository implements Repository {
     at: number,
     incrementUnread: boolean,
   ): Promise<void> {
-    const c = await this.getConversation(conversationId);
-    if (!c) throw new Error(`会话不存在：${conversationId}`);
-    const nextLast = c.lastMessageAt === null || at > c.lastMessageAt ? at : c.lastMessageAt;
-    const nextUnread = c.unreadCount + (incrementUnread ? 1 : 0);
+    const exists = await this.getConversation(conversationId);
+    if (!exists) throw new Error(`会话不存在：${conversationId}`);
+    // 单条 UPDATE 完成比较与累加：并发入站不会互相覆盖未读数
     this.db
-      .prepare('UPDATE conversations SET last_message_at = ?, unread_count = ? WHERE id = ?')
-      .run(nextLast, nextUnread, conversationId);
+      .prepare(
+        `UPDATE conversations
+            SET last_message_at = CASE
+                  WHEN last_message_at IS NULL OR ? > last_message_at THEN ?
+                  ELSE last_message_at END,
+                unread_count = unread_count + ?
+          WHERE id = ?`,
+      )
+      .run(at, at, incrementUnread ? 1 : 0, conversationId);
   }
 
   async markRead(conversationId: string): Promise<void> {
@@ -468,4 +488,12 @@ function serializeMedia(media: MediaRef[] | null): string | null {
 function deserializeMedia(raw: unknown): MediaRef[] | null {
   if (typeof raw !== 'string' || raw.length === 0) return null;
   return JSON.parse(raw) as MediaRef[];
+}
+
+/**
+ * 补丁语义：`undefined` = 不修改，`null` = 清空。
+ * 二者必须区分 —— 否则「把客户语言清掉」这件事永远做不到。
+ */
+function pick<T>(incoming: T | undefined, fallback: T): T {
+  return incoming === undefined ? fallback : incoming;
 }

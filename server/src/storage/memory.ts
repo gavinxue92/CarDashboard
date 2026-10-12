@@ -35,9 +35,9 @@ export class MemoryRepository implements Repository {
     const existing = this.channels.get(input.id);
     const rec: ChannelRecord = {
       id: input.id,
-      label: input.label ?? existing?.label ?? input.id,
-      phoneNumber: input.phoneNumber ?? existing?.phoneNumber ?? null,
-      active: input.active ?? existing?.active ?? true,
+      label: pick(input.label, existing?.label ?? input.id),
+      phoneNumber: pick(input.phoneNumber, existing?.phoneNumber ?? null),
+      active: pick(input.active, existing?.active ?? true),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
@@ -56,28 +56,27 @@ export class MemoryRepository implements Repository {
 
   async upsertContact(input: UpsertContactInput): Promise<ContactRecord> {
     const now = this.clock.now();
-    const existing = await this.findContactByWaId(input.channelId, input.waId);
-    if (existing) {
-      const merged: ContactRecord = {
-        ...existing,
-        name: input.name ?? existing.name,
-        country: input.country ?? existing.country,
-        language: input.language ?? existing.language,
-        updatedAt: now,
-      };
-      this.contacts.set(merged.id, merged);
-      return { ...merged };
-    }
-    const rec: ContactRecord = {
-      id: this.ids.next(),
-      channelId: input.channelId,
-      waId: input.waId,
-      name: input.name ?? null,
-      country: input.country ?? null,
-      language: input.language ?? null,
-      createdAt: now,
-      updatedAt: now,
-    };
+    // 注意：这里**不能有 await** —— 检查与写入之间一旦让出执行权，
+    // 并发调用就会各自看到「不存在」而重复创建。同步完成才是原子的。
+    const existing = this.findContactSync(input.channelId, input.waId);
+    const rec: ContactRecord = existing
+      ? {
+          ...existing,
+          name: pick(input.name, existing.name),
+          country: pick(input.country, existing.country),
+          language: pick(input.language, existing.language),
+          updatedAt: now,
+        }
+      : {
+          id: this.ids.next(),
+          channelId: input.channelId,
+          waId: input.waId,
+          name: input.name ?? null,
+          country: input.country ?? null,
+          language: input.language ?? null,
+          createdAt: now,
+          updatedAt: now,
+        };
     this.contacts.set(rec.id, rec);
     return { ...rec };
   }
@@ -88,18 +87,16 @@ export class MemoryRepository implements Repository {
   }
 
   async findContactByWaId(channelId: string, waId: string): Promise<ContactRecord | null> {
-    for (const c of this.contacts.values()) {
-      if (c.channelId === channelId && c.waId === waId) return { ...c };
-    }
-    return null;
+    const c = this.findContactSync(channelId, waId);
+    return c ? { ...c } : null;
   }
 
   async ensureConversation(input: EnsureConversationInput): Promise<ConversationRecord> {
-    const existing = await this.findConversationByChat(input.channelId, input.chatId);
+    // 同上：同步完成「查 + 建」，否则并发时会产生重复会话
+    const existing = this.findConversationSync(input.channelId, input.chatId);
     if (existing) {
       if (input.contactId && !existing.contactId) {
         existing.contactId = input.contactId;
-        this.conversations.set(existing.id, existing);
       }
       return { ...existing };
     }
@@ -126,10 +123,8 @@ export class MemoryRepository implements Repository {
     channelId: string,
     chatId: string,
   ): Promise<ConversationRecord | null> {
-    for (const c of this.conversations.values()) {
-      if (c.channelId === channelId && c.chatId === chatId) return { ...c };
-    }
-    return null;
+    const c = this.findConversationSync(channelId, chatId);
+    return c ? { ...c } : null;
   }
 
   async listConversations(channelId?: string): Promise<ConversationRecord[]> {
@@ -234,6 +229,30 @@ export class MemoryRepository implements Repository {
     this.conversations.clear();
     this.messages.clear();
   }
+
+  /* ---------- 内部：同步查找（供上面无 await 的原子操作使用） ---------- */
+
+  private findContactSync(channelId: string, waId: string): ContactRecord | undefined {
+    for (const c of this.contacts.values()) {
+      if (c.channelId === channelId && c.waId === waId) return c;
+    }
+    return undefined;
+  }
+
+  private findConversationSync(channelId: string, chatId: string): ConversationRecord | undefined {
+    for (const c of this.conversations.values()) {
+      if (c.channelId === channelId && c.chatId === chatId) return c;
+    }
+    return undefined;
+  }
+}
+
+/**
+ * 补丁语义：`undefined` = 不修改，`null` = 清空。
+ * 二者必须区分 —— 否则「把客户语言清掉」这件事永远做不到。
+ */
+function pick<T>(incoming: T | undefined, fallback: T): T {
+  return incoming === undefined ? fallback : incoming;
 }
 
 function clone(m: MessageRecord): MessageRecord {

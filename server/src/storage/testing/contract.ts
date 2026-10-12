@@ -69,6 +69,25 @@ export function defineRepositoryContract(
       expect(other.id).not.toBe(c1.id);
     });
 
+    it('客户：undefined 保持原值，null 清空（补丁语义）', async () => {
+      const repo = await fresh();
+      await repo.upsertContact({ channelId: 'ch-1', waId: 'wa-1', name: 'Ali', country: 'NG', language: 'en' });
+      const keep = await repo.upsertContact({ channelId: 'ch-1', waId: 'wa-1' });
+      expect([keep.name, keep.country, keep.language]).toEqual(['Ali', 'NG', 'en']);
+
+      const cleared = await repo.upsertContact({ channelId: 'ch-1', waId: 'wa-1', language: null });
+      expect(cleared.language).toBeNull();
+      expect(cleared.name).toBe('Ali');
+    });
+
+    it('客户：并发 upsert 不会重复创建', async () => {
+      const repo = await fresh();
+      const ids = await Promise.all(
+        Array.from({ length: 8 }, () => repo.upsertContact({ channelId: 'ch-1', waId: 'wa-race' })),
+      );
+      expect(new Set(ids.map((c) => c.id)).size).toBe(1);
+    });
+
     /* ---------- 会话 ---------- */
 
     it('会话：同 (channelId, chatId) 幂等返回同一 id', async () => {
@@ -107,6 +126,29 @@ export function defineRepositoryContract(
       expect(mid?.unreadCount).toBe(2);
       await repo.markRead(conv.id);
       expect((await repo.getConversation(conv.id))?.unreadCount).toBe(0);
+    });
+
+    it('会话：并发 ensureConversation 只创建一个（真实 webhook 会并发到达）', async () => {
+      const repo = await fresh();
+      await repo.upsertChannel({ id: 'ch-1' });
+      const convs = await Promise.all(
+        Array.from({ length: 8 }, () =>
+          repo.ensureConversation({ channelId: 'ch-1', chatId: 'chat-race', chatType: 'direct' }),
+        ),
+      );
+      expect(new Set(convs.map((c) => c.id)).size).toBe(1);
+      expect(await repo.listConversations('ch-1')).toHaveLength(1);
+    });
+
+    it('会话：并发 touchConversation 不丢未读计数', async () => {
+      const repo = await fresh();
+      const conv = await seedConversation(repo);
+      await Promise.all(
+        Array.from({ length: 10 }, (_, i) => repo.touchConversation(conv.id, 1000 + i, true)),
+      );
+      const after = await repo.getConversation(conv.id);
+      expect(after?.unreadCount).toBe(10);
+      expect(after?.lastMessageAt).toBe(1009);
     });
 
     it('会话：按账号过滤', async () => {
