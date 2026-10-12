@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "demo": "tsx src/demo/conversation.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
