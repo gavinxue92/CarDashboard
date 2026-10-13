@@ -88,8 +88,11 @@ check('CONV.md: 恢复群组并说明理由', conv.includes('群组') && conv.in
 check('CONV.md: 对 REF-TUOYI.md 的快捷插入栏结论做勘误', conv.includes('勘误') && conv.includes('不是抄来的'));
 check('CONV.md: origin=phone 必须在界面可见', conv.includes('origin=phone') && conv.includes('未经翻译'));
 check('CONV.md: 插入不等于发送（不许绕过译文确认）', conv.includes('插入 ≠ 发送'));
-check('CONV.md: 翻译开关章节标注为待决策', conv.includes('待决策') && conv.includes('## 五、翻译开关粒度'));
-check('CONV.md: 翻译开关给出递进阶梯与推荐理由', conv.includes('L0') && conv.includes('L4') && conv.includes('我的推荐'));
+check('CONV.md: 翻译开关章节标注决策状态', conv.includes('决策已定') && conv.includes('## 五、翻译开关粒度'));
+check('CONV.md: 阶梯 L0–L4 逐档逐项列出', ['L0', 'L1', 'L2', 'L3', 'L4'].every(s => conv.includes('**' + s + ' —')));
+check('CONV.md: 决策记录含 6 项采纳明细', conv.includes('### 决策记录') && conv.includes('L1 全部 4 项 + L2 的 1 项 + L4 的术语可视化 1 项 = 6 项'));
+check('CONV.md: 列出明确排除项与开放项', conv.includes('明确排除（6 项）') && conv.includes('开放项（本轮不定）'));
+check('CONV.md: 24 小时窗口三处全换成待跟进（已确认）', conv.includes('全部换成「待跟进」') && conv.includes('三处'));
 check('CONV.md: 不抄清单存在且含关键项', conv.includes('## 七、不抄清单') && conv.includes('allowRunningInsecureContent=true') && conv.includes('声音克隆'));
 check('CONV.md: 明确本轮不改原型与代码', conv.includes('只出设计文档') && conv.includes('不改 `prototype.html`'));
 
