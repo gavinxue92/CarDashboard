@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "server"
+    "server",
+    "shell"
   ],
   "engines": {
     "node": ">=22.5.0"
