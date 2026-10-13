@@ -43,7 +43,10 @@ check('原型: body 携带 lang（语言是数据不是代码）', /body:\s*\{\s
 check('原型: translation 携带 state（翻译状态）', /translation:\s*\{[^}]*state:/.test(html));
 check('原型: 消息有发送状态 delivery', /delivery:\s*'(sending|sent|delivered|read|failed)'/.test(html));
 check('原型: 五种翻译状态齐备', ['none', 'pending', 'done', 'failed', 'skipped'].every(s => html.includes("'" + s + "'")));
-check('原型: 主气泡按语言选边（不再按方向猜原文）', html.includes('const OUR_LANG') && html.includes('m.body.lang === OUR_LANG'));
+check('原型 v6: 气泡一律显示实际传输文本（套壳下改不了网页版的气泡）',
+  html.includes('let bubbleText = m.body.text') && !/bubbleText = tl\.text/.test(html));
+check('原型 v6: 出站副行 = 我输入的中文（气泡已是实际发出的英文）',
+  html.includes('我输入的中文') && html.includes('注入 · 译文'));
 check('原型: origin=phone 在气泡上可见', html.includes("origin: 'phone'") && html.includes('手机端 · 未经翻译'));
 check('原型: 消息悬浮操作条含必备动作', ['复制', '重译', '引用回复', '收藏为话术', '撤回'].every(s => html.includes(s)) && html.includes('msg-bar'));
 check('原型: 出站确认层存在且译文可就地编辑', html.includes('id="confirm"') && html.includes('id="pvBody"') && html.includes('contentEditable'));
@@ -54,16 +57,18 @@ check('原型: 待跟进在列表与会话头均有注入标注（不再有列�
   html.includes("'待跟进 · '") && html.includes('inj-tag-inline') && (html.match(/待跟进/g) || []).length >= 3);
 check('原型: 账号维度 = 左栏切号（头像 + 账号弹层 + 连接状态）',
   html.includes('id="acctAvatar"') && html.includes('id="acctPop"') && html.includes('s-ok') && html.includes('需重新扫码') && html.includes('连接断开'));
-check('原型: 右栏为功能工具栏（拓译形态，9 入口），不再常驻右栏',
+check('原型 v6: 右侧 = 78px 功能工具栏 + 300px 常驻客户面板（两者并存，用户拍板「两个都要」）',
   ['翻译设置', '代理设置', '客户信息', 'AI问答', '快捷消息', '群发', '群管理', '工单管理', '语音输入'].every(s => html.includes(s)) &&
-  !html.includes('class="col-side"'));
-check('原型: 客户信息与快捷消息走弹层（拓译形态）',
-  html.includes('id="custPop"') && html.includes('id="quickPop"') && html.includes('id="recoPop"'));
+  html.includes('class="col-side"') && html.includes('col-side.collapsed') && html.includes('data-stab="cost"'));
+check('原型 v6: 常驻面板页签 = 客户档案 / 成本精算，工具栏「客户信息」负责展开/收起',
+  html.includes('data-stab="profile"') && html.includes('成本精算未开工') && html.includes("classList.toggle('collapsed')"));
+check('原型 v6: 快捷消息与推荐回复仍走弹层', html.includes('id="quickPop"') && html.includes('id="recoPop"') && !html.includes('id="custPop"'));
 check('原型: 网页版自己的会话列表（拓译形态：列表是网页版的，我们只注入）',
   html.includes('class="wa-list"') && html.includes('data-wf="all"') && html.includes('特别关注') && html.includes('群组'));
 check('原型: 群组按会话类型处理（类型字段 + 群名直显）', html.includes("type: 'group'") && html.includes("phone: '尼日利亚重卡采购群'"));
-check('原型: 列表显示手机号/群名（CRM 字段不在网页版伪装）',
-  html.includes('+234 803 386 4565') && html.includes('客户档案（注入面板'));
+check('原型 v6: 列表行显示手机号/群名 + 注入 CRM 一行（客户名 · 国家 · 阶段）',
+  html.includes('<span class="wa-name">\' + esc(c.phone)') && html.includes("esc(c.country) + ' · ' + esc(c.stage)") && html.includes('注入 · 来自我们的 CRM 库'));
+check('原型 v6: 会话头注入客户名 · 国家', html.includes("esc(c.name) + ' · ' + esc(c.country)"));
 check('原型: 插入 ≠ 发送（话术代写进网页版输入框成草稿）',
   html.includes('插入 ≠ 发送') && html.includes('已代写进网页版输入框') && html.includes('state.draft'));
 
@@ -73,8 +78,8 @@ check('原型: 中间整块标注为官方网页版（含它自己的会话列�
 check('原型: 宿主提示给出适配版本号', html.includes('适配 v5.2.57'));
 check('原型: 注入部分有显式标记（.inj + .inj-tag）',
   html.includes('.inj { border-left: 2px dashed') && (html.match(/inj-tag/g) || []).length >= 4);
-check('原型: 注入标记覆盖四类（原文副行 / 翻译状态 / 缺口标记 / 消息操作条）',
-  ['注入 · 原文', '注入 · 翻译状态', '注入 · 缺口标记', '注入 · 消息操作条'].every(s => html.includes(s)));
+check('原型: 注入标记覆盖四类（译文 / 翻译状态 / 缺口标记 / 消息操作条）',
+  ['注入 · 译文', '注入 · 翻译状态', '注入 · 缺口标记', '注入 · 消息操作条'].every(s => html.includes(s)));
 check('原型: 输入框归属网页版（原生 contenteditable，不自绘输入框）',
   html.includes('id="waInput"') && html.includes('contenteditable="true"') && !html.includes('<input id="input"'));
 check('原型: 外圈 = 左右窄栏 + 弹层（显式标注「我们的」）',
@@ -98,10 +103,12 @@ const mdRequired = ['## 一、', '## 二、', '## 三、', '## 四、', '## 五�
 check('DESIGN.md: 六个章节齐全', mdRequired.every(s => md.includes(s)));
 check('DESIGN.md: 记录了未采纳的改动', md.includes('未采纳'));
 check('DESIGN.md: 记录了预留入口清单', md.includes('四、预留给后续模块的入口'));
-check('DESIGN.md: 已同步为 v5 并指向 SHELL-ROUTE.md', md.includes('设计说明（v5）') && md.includes('SHELL-ROUTE.md'));
+check('DESIGN.md: 已同步为 v6 并指向 SHELL-ROUTE.md 与 shell/', md.includes('设计说明（v6）') && md.includes('SHELL-ROUTE.md') && md.includes('shell/'));
 check('DESIGN.md: 布局图标明中间是官方网页版', md.includes('<webview>（别人的页面，整块）'));
 check('DESIGN.md: v5 变更表逐条记录用户反馈', md.includes('v5 相对 v4 的变更') && md.includes('为什么左侧聊天列表还是自绘的'));
-check('DESIGN.md: 就地记录被推翻的 v3/v4 结论', md.includes('v5 被推翻的 v3/v4 结论') && md.includes('常驻'));
+check('DESIGN.md: v6 变更表记录「两个都要」与气泡回归原文', md.includes('v6 相对 v5 的变更') && md.includes('两个都要') && md.includes('气泡'));
+check('DESIGN.md: 就地记录被推翻的 v3/v4/v5 结论', md.includes('被推翻') && md.includes('常驻'));
+check('DESIGN.md: 记录 S0 壳的运行方式', md.includes('npm run start -w shell') || md.includes('npm run start --workspace shell'));
 
 // ---- UNOFFICIAL-ROUTE.md ----
 const route = readFileSync(join(root, 'UNOFFICIAL-ROUTE.md'), 'utf8');
@@ -195,6 +202,27 @@ check('SHELL.md: 显式记录被这条路推翻的既有设计',
 check('SHELL.md: 不抄清单含 webSecurity 与 AES 注入',
   shell.includes('allowRunningInsecureContent=true') && shell.includes('index.enc'));
 check('SHELL.md: 不写入任何凭据或密钥值', !/(password|token|secret)\s*[:=]\s*['"][^'"]+['"]/i.test(shell));
+
+// ---- shell/（S0 Electron 壳，真实代码的静态检查） ----
+const { existsSync } = await import('node:fs');
+const shellDir = join(root, '..', 'shell');
+const mainjs = existsSync(join(shellDir, 'src', 'main.cjs')) ? readFileSync(join(shellDir, 'src', 'main.cjs'), 'utf8') : '';
+const acctjs = existsSync(join(shellDir, 'src', 'accounts.cjs')) ? readFileSync(join(shellDir, 'src', 'accounts.cjs'), 'utf8') : '';
+const rendjs = existsSync(join(shellDir, 'renderer', 'renderer.js')) ? readFileSync(join(shellDir, 'renderer', 'renderer.js'), 'utf8') : '';
+const shellHtml = existsSync(join(shellDir, 'renderer', 'index.html')) ? readFileSync(join(shellDir, 'renderer', 'index.html'), 'utf8') : '';
+check('shell: 文件齐全（main / accounts / preload / renderer / smoke）',
+  ['src/main.cjs', 'src/accounts.cjs', 'src/preload.cjs', 'renderer/renderer.js', 'scripts/smoke.cjs'].every(f => existsSync(join(shellDir, f))));
+check('shell: webviewTag 开启（出站确认层将来必须覆盖对话区）', mainjs.includes('webviewTag: true'));
+check('shell: 不放宽安全边界（不抄拓译）',
+  mainjs.includes('contextIsolation: true') && !/webSecurity:\s*false/.test(mainjs) && !/allowRunningInsecureContent/.test(mainjs));
+check('shell: 一号一 persist partition（登录态隔离）', acctjs.includes("'persist:wa-'") && acctjs.includes('sanitizeAccountId'));
+check('shell: 账号 ID 清洗后为空即抛错（不静默）', acctjs.includes('清洗后为空'));
+check('shell: --smoke 自测通道存在且不依赖外网', mainjs.includes('--smoke') && readFileSync(join(shellDir, 'scripts', 'smoke.cjs'), 'utf8').includes('--smoke'));
+check('shell: 渲染层切号 = 重建 webview（partition 是创建期属性）', rendjs.includes("createElement('webview')") && rendjs.includes("setAttribute('partition'"));
+check('shell: 外圈布局 = 账号栏 + 官方网页版 + 工具栏 + 常驻客户面板',
+  shellHtml.includes('id="hostBody"') && shellHtml.includes('class="tools"') && shellHtml.includes('客户档案') && shellHtml.includes('成本精算'));
+check('shell: 网页版加载失败显性展示（不静默）', rendjs.includes('did-fail-load') && rendjs.includes('加载失败'));
+check('shell: CSP 收紧（渲染层无远程脚本）', shellHtml.includes('Content-Security-Policy') && shellHtml.includes("script-src 'self'"));
 
 console.log('');
 if (failed) {

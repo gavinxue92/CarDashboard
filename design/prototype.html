@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>海外汽车服务工作台 · 原型 v5（拓译形态）</title>
+<title>海外汽车服务工作台 · 原型 v6（套壳设计稿）</title>
 <style>
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
@@ -134,6 +134,18 @@ body {
 .tool-item:hover { background: #e9edef; }
 .tool-item .ico { font-size: 19px; line-height: 1.2; }
 .tool-item .tx { font-size: 10.5px; color: #3b4a54; white-space: nowrap; }
+.tool-item.on { background: #e9edef; }
+
+/* ===== 右侧常驻客户面板（v6 回归：与 78px 工具栏并存，用户拍板「两个都要」） ===== */
+.col-side { width: 300px; flex: 0 0 300px; background: #fff; border-left: 1px solid #e2e5e9; display: flex; flex-direction: column; }
+.col-side.collapsed { display: none; }
+.side-head { display: flex; gap: 14px; padding: 12px 16px 0; border-bottom: 1px solid #eef0f4; align-items: baseline; }
+.side-tab { padding-bottom: 9px; font-size: 13px; color: #7b8494; cursor: pointer; border-bottom: 2px solid transparent; }
+.side-tab.on { color: #111b21; font-weight: 600; border-bottom-color: #2f6fed; }
+.side-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.pane { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 4px 14px; }
+.pane.hidden { display: none; }
+.side-foot { padding: 10px 16px; border-top: 1px solid #eef0f4; font-size: 11px; color: #8696a0; line-height: 1.6; }
 
 /* ================= 弹层 / 对话框 / 确认层 ================= */
 .pop { position: fixed; background: #fff; border: 1px solid #e2e5e9; border-radius: 12px;
@@ -316,13 +328,24 @@ body {
   <aside class="rail-r">
     <div class="tool-item" id="toolTrans" title="按账号配置翻译模式"><span class="ico">🌐</span><span class="tx">翻译设置</span></div>
     <div class="tool-item" data-reserved="代理设置"><span class="ico">🛡</span><span class="tx">代理设置</span></div>
-    <div class="tool-item" id="toolCust" title="当前会话的客户档案"><span class="ico">👤</span><span class="tx">客户信息</span></div>
+    <div class="tool-item on" id="toolCust" title="当前会话的客户档案（常驻面板，点此收起/展开）"><span class="ico">👤</span><span class="tx">客户信息</span></div>
     <div class="tool-item" data-reserved="AI 问答"><span class="ico">🤖</span><span class="tx">AI问答</span></div>
     <div class="tool-item" id="toolQuick" title="话术（带分组）"><span class="ico">💬</span><span class="tx">快捷消息</span></div>
     <div class="tool-item" data-reserved="群发"><span class="ico">📣</span><span class="tx">群发</span></div>
     <div class="tool-item" data-reserved="群管理"><span class="ico">👥</span><span class="tx">群管理</span></div>
     <div class="tool-item" data-reserved="工单管理"><span class="ico">📋</span><span class="tx">工单管理</span></div>
     <div class="tool-item" data-reserved="语音输入"><span class="ico">🎤</span><span class="tx">语音输入</span></div>
+  </aside>
+
+  <!-- ============ 右侧常驻客户面板（v6 回归：工具栏 + 常驻面板并存，用户拍板「两个都要」） ============ -->
+  <aside class="col-side" id="side">
+    <div class="side-head">
+      <span class="side-tab on" data-stab="profile">客户档案</span>
+      <span class="side-tab" data-stab="cost">成本精算</span>
+      <span class="inj-tag-inline" style="margin-left:auto" title="数据来自我们的库 · 网页版里没有这些字段">注入 · 我们的库</span>
+    </div>
+    <div class="side-body" id="sideBody"></div>
+    <div class="side-foot" id="sideFoot"></div>
   </aside>
 </div>
 
@@ -377,9 +400,8 @@ body {
   </div>
 </div>
 
-<!-- 弹层：账号切换 / 客户信息 / 快捷消息 / 推荐回复 -->
+<!-- 弹层：账号切换 / 快捷消息 / 推荐回复（客户信息 v6 起改常驻面板，不再弹层） -->
 <div class="pop hidden" id="acctPop"></div>
-<div class="pop hidden" id="custPop"></div>
 <div class="pop hidden" id="quickPop"></div>
 <div class="pop hidden" id="recoPop"></div>
 
@@ -387,14 +409,15 @@ body {
 
 <script>
 /* =========================================================================
- * v5 原型：拓译形态（用户 2026-10-13 拍板：参照拓译的真实布局）
- *   · 中间整块是官方网页版（含它自己的会话列表）—— 不再自绘列表
- *   · 左栏 = 我们的窄账号栏（头像切号 / 所有·未读 / WA 入口 / 设置）
- *   · 右栏 = 我们的窄功能工具栏（9 入口），客户档案与话术改走弹层
- *   · 翻译模式从「编辑账号」弹窗配置（拓译同款），模式行注入在输入区旁
- *   · 每条入站消息下注入「翻译面板」：译文行 + 推荐回复 / 商务角色 / 历史翻译
- * 自 v4 保留：消息模型 body/translation、delivery 与 translation.state、
- *   origin=phone 可见、出站拦截确认层、「插入 ≠ 发送」、注入标记纪律。
+ * v6 原型：套壳设计稿（S0 已开工 —— design/../shell/ 为真实 Electron 壳）
+ * v6 变更（用户 2026-10-13 拍板「两个都要」+ 指出「还是自绘的」）：
+ *   1. 气泡一律显示实际传输的那一份（英文）—— 套壳下我们改不了网页版的气泡，
+ *      译文只出现在注入面板。v5 把译文画进气泡是「一眼假」的最大破绽
+ *   2. 右侧恢复 300px 常驻客户面板（客户档案 / 成本精算），与 78px 工具栏并存
+ *   3. 会话列表行注入客户名 / 国家 / 阶段（网页版仍显示手机号/群名，我们叠一行 CRM）
+ * 自 v5 保留：整块网页版（含其会话列表）、左栏切号、编辑账号弹窗（翻译模式唯一入口）、
+ *   注入翻译面板、出站拦截确认层、「插入 ≠ 发送」、注入标记纪律。
+ * 自 v4 保留：消息模型 body/translation、delivery 与 translation.state、origin=phone 可见。
  * ========================================================================= */
 
 const OUR_LANG = 'zh-CN';
@@ -545,8 +568,8 @@ function esc(s) {
   return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 }
 
-const isOurs = m => m.body.lang === OUR_LANG;
-function altLabel(m) { return m.direction === 'in' ? '原文' : '实际发出'; }
+/* 出站消息 = 我方发出（气泡里是实际发出的英文；我输入的中文在注入副行里） */
+function altLabel(m) { return '我输入的中文'; }
 
 function followInfo(c) {
   if (c.pendingH == null) return null;
@@ -559,7 +582,7 @@ function acctInfo(id) { return accounts.find(a => a.id === id) || accounts[0]; }
 function curConv() { return convs.find(x => x.id === state.current); }
 
 function closePops(except) {
-  ['acctPop', 'custPop', 'quickPop', 'recoPop'].forEach(id => {
+  ['acctPop', 'quickPop', 'recoPop'].forEach(id => {
     if (id !== except) document.getElementById(id).classList.add('hidden');
   });
 }
@@ -626,16 +649,17 @@ function renderList() {
     const f = followInfo(c);
     const avaColor = c.type === 'group' ? '#54656f' : ['#7f669d', '#2f6fed', '#c2703d', '#3e8e6d', '#a8516e'][Math.abs(hash(c.phone)) % 5];
     const ticks = lastOutRead(c) ? '<span style="color:#53bdeb">✓✓</span> ' : '';
-    /* 注入标注：待跟进（我们的库算出来的，网页版没有这个概念） */
-    const inj = f ? '<span class="inj-tag-inline" title="注入 · 来自我们的 CRM 库">' + f.text + (f.urgent ? ' !' : '') + '</span>' : '';
-    const un = c.unread > 0 ? '<span class="wa-unread">' + c.unread + '</span>' : '';
-    return '<div class="wa-item' + (c.id === state.current ? ' on' : '') + '" data-id="' + c.id + '">' +
-      '<div class="wa-ava" style="background:' + avaColor + '">' + (c.type === 'group' ? '👥' : esc(c.phone.replace(/[^0-9]/g, '').slice(-2))) + '</div>' +
-      '<div class="wa-mid">' +
-        '<div class="wa-row1"><span class="wa-name">' + esc(c.phone) + '</span><span class="wa-time">' + esc(c.time) + '</span></div>' +
-        '<div class="wa-row2"><span class="wa-prev">' + ticks + esc(lastBodyText(c).slice(0, 40)) + '</span>' + un + '</div>' +
-        (f ? '<div class="wa-row2">' + inj + '</div>' : '') +
-      '</div></div>';
+  /* 注入标注：CRM 一行（客户名/国家/阶段/待跟进，网页版只显示手机号/群名——我们叠一行） */
+  const crm = '<span class="inj-tag-inline" title="注入 · 来自我们的 CRM 库">' + esc(c.name) + ' · ' +
+    esc(c.country) + ' · ' + esc(c.stage) + (f ? ' · ' + f.text + (f.urgent ? ' !' : '') : '') + '</span>';
+  const un = c.unread > 0 ? '<span class="wa-unread">' + c.unread + '</span>' : '';
+  return '<div class="wa-item' + (c.id === state.current ? ' on' : '') + '" data-id="' + c.id + '">' +
+    '<div class="wa-ava" style="background:' + avaColor + '">' + (c.type === 'group' ? '👥' : esc(c.phone.replace(/[^0-9]/g, '').slice(-2))) + '</div>' +
+    '<div class="wa-mid">' +
+      '<div class="wa-row1"><span class="wa-name">' + esc(c.phone) + '</span><span class="wa-time">' + esc(c.time) + '</span></div>' +
+      '<div class="wa-row2">' + crm + '</div>' +
+      '<div class="wa-row2"><span class="wa-prev">' + ticks + esc(lastBodyText(c).slice(0, 40)) + '</span>' + un + '</div>' +
+    '</div></div>';
   }).join('');
 
   box.querySelectorAll('.wa-item').forEach(el => {
@@ -665,12 +689,13 @@ function renderChat() {
   const follow = document.getElementById('chFollow');
   if (!c) { box.innerHTML = ''; headName.textContent = '—'; follow.innerHTML = ''; return; }
 
-  /* 会话头是网页版的；「待跟进」标注是我们注入的 */
+  /* 会话头是网页版的（显示手机号/群名）；「客户名 · 国家」与「待跟进」是我们注入的 */
   headName.textContent = c.phone;
   headAva.textContent = c.type === 'group' ? '👥' : c.phone.replace(/[^0-9]/g, '').slice(-2);
   headAva.style.background = c.type === 'group' ? '#54656f' : ['#7f669d', '#2f6fed', '#c2703d', '#3e8e6d', '#a8516e'][Math.abs(hash(c.phone)) % 5];
   const f = followInfo(c);
-  follow.innerHTML = f ? '<span class="inj-tag-inline" title="注入 · 来自我们的 CRM 库">' + f.text + '</span>' : '';
+  follow.innerHTML = '<span class="inj-tag-inline" title="注入 · 来自我们的 CRM 库">' + esc(c.name) + ' · ' + esc(c.country) + '</span>' +
+    (f ? ' <span class="inj-tag-inline">' + f.text + '</span>' : '');
 
   const list = messages[c.id] || [];
   const keep = box.dataset.conv === state.current ? box.scrollTop : null;
@@ -681,19 +706,20 @@ function renderChat() {
   box.dataset.conv = state.current;
   bindChat(box);
   box.scrollTop = keep == null ? box.scrollHeight : keep;
+  renderSide();   /* 常驻客户面板随会话联动 */
 }
 
 function renderMsg(m, c) {
   const tl = m.translation;
   const st = tl ? tl.state : 'none';
   const key = c.id + '-' + m.id;
-  let bubbleText, bubbleCls = '', injPanel = '';
 
-  /* ---- 气泡本体：网页版画的（真实实现我们只读不写） ---- */
-  if (st === 'pending') { bubbleText = m.body.text; bubbleCls = ' pending'; }
-  else if (st === 'failed') { bubbleText = m.body.text; bubbleCls = ' failed'; }
-  else if (st === 'done' && !isOurs(m) && translationVisible(c, m)) { bubbleText = tl.text; }
-  else { bubbleText = m.body.text; }
+  /* ---- 气泡本体：网页版画的（真实实现我们只读不写） ----
+   * v6 纠正：气泡里永远是实际传输的那一份（body）——套壳下我们改不了网页版的气泡，
+   * 译文只能出现在下方注入面板。v5 把译文画进气泡是原型「一眼假」的最大破绽。 */
+  let bubbleText = m.body.text, bubbleCls = '', injPanel = '';
+  if (st === 'pending') bubbleCls = ' pending';
+  else if (st === 'failed') bubbleCls = ' failed';
 
   const foot = '<div class="bubble-foot">' +
     (m.direction === 'out' ? '<span class="deliv ' + m.delivery + '">' + deliveryMark(m.delivery) + '</span>' : '') +
@@ -704,14 +730,14 @@ function renderMsg(m, c) {
     injPanel = renderInjPanel(m, c, st, key);
   }
 
-  /* 出站：注入「实际发出」副行 + 手机端缺口标记 */
+  /* 出站：注入「我输入的中文」副行 + 手机端缺口标记（气泡已是实际发出的英文） */
   let outInj = '';
   if (m.direction === 'out') {
     const parts = [];
     if (st === 'done' || st === 'skipped') {
       const shown = state.revealed[key];
       parts.push('<span class="lbl">注入 ·</span> ' + (shown
-        ? '<span class="lnk" data-key="' + key + '">隐藏' + altLabel(m) + '</span>：' + esc(isOurs(m) ? tl.text : m.body.text)
+        ? '<span class="lnk" data-key="' + key + '">隐藏' + altLabel(m) + '</span>：' + esc(tl.text)
         : '<span class="lnk" data-key="' + key + '">查看' + altLabel(m) + '</span>'));
     }
     if (m.origin === 'phone') parts.push('<span class="lbl">注入 · 缺口标记</span> <span class="phone-mark">手机端 · 未经翻译</span>');
@@ -739,8 +765,8 @@ function translationVisible(c, m) {
 function renderInjPanel(m, c, st, key) {
   let trans = '';
   if (st === 'done' && translationVisible(c, m)) {
-    /* 气泡已是译文，副行补原文那一侧（不重复显示译文） */
-    trans = '<span class="lbl">注入 · 原文</span>：' + esc(m.body.text);
+    /* 气泡显示的是实际传输的原文（v6），译文在这一行 */
+    trans = '<span class="lbl">注入 · 译文</span>：' + esc(m.translation.text);
   } else if (st === 'pending') {
     trans = '<span class="lbl">注入 · 翻译状态</span> 翻译中…（先显示原文，译文后补）';
   } else if (st === 'failed') {
@@ -830,21 +856,21 @@ function barAction(act, key) {
   const m = findMsg(key);
   if (!m) return;
   if (act === 'copy') {
-    const text = (m.translation && m.translation.state === 'done' && !isOurs(m)) ? m.translation.text : m.body.text;
+    const text = m.body.text;
     try { navigator.clipboard && navigator.clipboard.writeText(text); } catch (_) {}
     toast('已复制文本');
   } else if (act === 'retrans') {
     const [cid, mid] = key.split('-');
     retranslate(cid, mid);
   } else if (act === 'quote') {
-    const text = (m.translation && m.translation.state === 'done' && !isOurs(m)) ? m.translation.text : m.body.text;
+    const text = m.body.text;
     state.draft = text;
     state.sel = null;
     renderChat(); renderDraft();
     document.getElementById('waInput').focus();
     toast('已代写进网页版输入框（草稿）—— 点 ➤ 触发拦截确认');
   } else if (act === 'star') {
-    const text = (m.translation && m.translation.state === 'done' && !isOurs(m)) ? m.translation.text : m.body.text;
+    const text = m.body.text;
     const mine = scripts.find(s => s.group === '我的收藏');
     if (!mine.items.includes(text)) mine.items.push(text);
     toast('已收藏为话术（右栏「快捷消息」里可插入）');
@@ -888,24 +914,36 @@ function renderMode() {
     (chips.length ? ' ' + chips.map(c => '<b>[' + esc(c) + ']</b>').join('') : '');
 }
 
-/* =========================== 右栏：功能工具栏弹层 =========================== */
-function renderCustPop() {
+/* =========================== 右侧常驻客户面板（v6 回归） =========================== */
+function renderSide() {
   const c = curConv();
-  const pop = document.getElementById('custPop');
-  if (!c) { pop.innerHTML = '<div class="pop-title">没有会话</div>'; return; }
+  const body = document.getElementById('sideBody');
+  if (!c) { body.innerHTML = '<div style="text-align:center;color:#8696a0;padding:26px 10px">没有会话</div>'; return; }
   const f = followInfo(c);
-  pop.innerHTML = '<div class="pop-title">客户档案（注入面板 · 数据来自我们的库，不在网页版里）</div>' +
-    '<div class="field"><span class="k">客户 / 公司</span><span class="v">' + esc(c.name) + '</span></div>' +
-    '<div class="field"><span class="k">手机号</span><span class="v">' + esc(c.phone) + '</span></div>' +
-    '<div class="field"><span class="k">国家 / 城市</span><span class="v">' + esc(c.country + ' · ' + c.city) + '</span></div>' +
-    '<div class="field"><span class="k">意向阶段</span><span class="v">' + esc(c.stage) + '</span></div>' +
-    '<div class="field"><span class="k">所属账号</span><span class="v">' + esc(acctInfo(c.account).name) + '</span></div>' +
-    '<div class="field"><span class="k">首次联系</span><span class="v">' + esc(c.first) + '</span></div>' +
-    '<div class="field"><span class="k">标签</span><span class="v">' + esc(c.tags) + '</span></div>' +
-    '<div class="field"><span class="k">待跟进</span><span class="v">' + (f ? esc(f.text) : '已回复') + '</span></div>' +
-    '<div class="field"><span class="k">目的国</span><span class="v">' + esc(c.country) + '</span></div>' +
-    '<div class="field"><span class="k">车型 / 车龄 / 预算</span><span class="v muted">待从会话中抽取</span></div>' +
-    '<div class="notice">结构化字段是「业务 → 成本精算」的输入，今天先把位置留出来。</div>';
+  const activeTab = (document.querySelector('.side-tab.on') || {}).dataset.stab || 'profile';
+  body.innerHTML =
+    '<div class="pane' + (activeTab === 'profile' ? '' : ' hidden') + '" data-pane="profile">' +
+      '<div class="field"><span class="k">客户 / 公司</span><span class="v">' + esc(c.name) + '</span></div>' +
+      '<div class="field"><span class="k">手机号</span><span class="v">' + esc(c.phone) + '</span></div>' +
+      '<div class="field"><span class="k">国家 / 城市</span><span class="v">' + esc(c.country + ' · ' + c.city) + '</span></div>' +
+      '<div class="field"><span class="k">意向阶段</span><span class="v">' + esc(c.stage) + '</span></div>' +
+      '<div class="field"><span class="k">所属账号</span><span class="v">' + esc(acctInfo(c.account).name) + '</span></div>' +
+      '<div class="field"><span class="k">首次联系</span><span class="v">' + esc(c.first) + '</span></div>' +
+      '<div class="field"><span class="k">标签</span><span class="v">' + esc(c.tags) + '</span></div>' +
+      '<div class="field"><span class="k">待跟进</span><span class="v">' + (f ? esc(f.text) : '已回复') + '</span></div>' +
+      '<div class="field"><span class="k">目的国</span><span class="v">' + esc(c.country) + '</span></div>' +
+      '<div class="field"><span class="k">车型 / 车龄 / 预算</span><span class="v muted">待从会话中抽取</span></div>' +
+      '<div class="notice">结构化字段是「业务 → 成本精算」的输入，今天先把位置留出来。</div>' +
+    '</div>' +
+    '<div class="pane' + (activeTab === 'cost' ? '' : ' hidden') + '" data-pane="cost">' +
+      '<div class="field"><span class="k">车型</span><span class="v muted">vehicle 预留</span></div>' +
+      '<div class="field"><span class="k">报价</span><span class="v muted">quote 预留</span></div>' +
+      '<div class="field"><span class="k">成本项</span><span class="v muted">cost_item 预留</span></div>' +
+      '<div class="field"><span class="k">目的国规则</span><span class="v muted">配置表预留（车龄/排放/单证/海关估价）</span></div>' +
+      '<div class="notice">成本精算未开工。这里只留数据入口的形状，不做具体实现。</div>' +
+    '</div>';
+  document.getElementById('sideFoot').textContent =
+    '数据源：我们自己的库（观测同步落库）· 网页版里看不到这些字段';
 }
 
 function renderQuickPop() {
@@ -1184,8 +1222,20 @@ document.getElementById('railAll').addEventListener('click', () => { state.filte
 document.getElementById('railUnread').addEventListener('click', () => { state.filter = 'unread'; renderRail(); renderList(); });
 
 document.getElementById('toolTrans').addEventListener('click', () => { closePops(); openDialog(); });
+/* 客户信息 = 展开/收起常驻面板（v6：不再弹层） */
 document.getElementById('toolCust').addEventListener('click', e => {
-  e.stopPropagation(); renderCustPop(); popAt('custPop', e.currentTarget);
+  e.stopPropagation();
+  const side = document.getElementById('side');
+  const collapsed = side.classList.toggle('collapsed');
+  e.currentTarget.classList.toggle('on', !collapsed);
+});
+document.querySelectorAll('.side-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.side-tab').forEach(x => x.classList.toggle('on', x === t));
+    document.querySelectorAll('#sideBody .pane').forEach(p =>
+      p.classList.toggle('hidden', p.dataset.pane !== t.dataset.stab));
+    renderSide();
+  });
 });
 document.getElementById('toolQuick').addEventListener('click', e => {
   e.stopPropagation(); renderQuickPop(); popAt('quickPop', e.currentTarget);
@@ -1216,7 +1266,7 @@ document.querySelectorAll('[data-reserved]').forEach(el => {
 
 document.addEventListener('click', e => {
   if (e.target.closest('.pop') || e.target.closest('#acctAvatar') ||
-      e.target.closest('#toolCust') || e.target.closest('#toolQuick') || e.target.closest('[data-reco]')) return;
+      e.target.closest('#toolQuick') || e.target.closest('[data-reco]')) return;
   closePops();
 });
 
@@ -1225,6 +1275,7 @@ renderRail();
 renderList();
 renderChat();
 renderMode();
+renderSide();
 resolvePending(state.current);
 </script>
 </body>
