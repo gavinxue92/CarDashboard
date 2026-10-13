@@ -67,7 +67,7 @@ body {
 .conv-preview { font-size: 12px; color: #98a1b0; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- 对话区（永远在左，§三 E） ---------- */
-.col-chat { flex: 1; min-width: 0; background: #f6f7f9; display: flex; flex-direction: column; }
+.col-chat { flex: 1; min-width: 0; background: #f6f7f9; display: flex; flex-direction: column; position: relative; }
 .chat-head { background: #fff; border-bottom: 1px solid #e6e8ec; padding: 12px 18px; }
 .work-title { display: flex; align-items: baseline; gap: 10px; }
 .work-name { font-size: 15px; font-weight: 600; }
@@ -78,19 +78,37 @@ body {
 .acct-state { font-size: 12px; color: #5a6472; display: flex; align-items: center; gap: 5px; }
 .acct-state .acct-dot { width: 7px; height: 7px; }
 
-.chat-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+/* ---------- 宿主条 + 网页版占位（v4：中间这块是别人的页面） ---------- */
+.host-bar { display: flex; align-items: center; gap: 8px; background: #1f2c34; color: #c7d3da; padding: 6px 14px; font-size: 11px; }
+.host-bar code { font-family: ui-monospace, Menlo, Consolas, monospace; color: #7fd1a5; }
+.host-bar .ok { margin-left: auto; color: #7fd1a5; }
 
-.group-head { display: flex; align-items: center; gap: 8px; background: #eef3ff; border: 1px solid #d6e2fb; color: #1f4fb8;
-  border-radius: 10px; padding: 8px 12px; font-size: 12px; margin-bottom: 12px; }
-.group-head .lnk { color: #1f4fb8; cursor: pointer; text-decoration: underline; margin-left: auto; }
+.wv { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #efeae2; position: relative; }
+.wv-top { background: #f0f2f5; border-bottom: 1px solid #dfe3e7; padding: 8px 14px; font-size: 12px; color: #54656f;
+  display: flex; align-items: center; gap: 8px; }
+.wv-top .lnk { color: #027eb5; cursor: pointer; margin-left: auto; }
+.wv-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.wv-composer { display: flex; align-items: center; gap: 10px; background: #f0f2f5; padding: 8px 14px; }
+.wv-draft { flex: 1; background: #fff; border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #111b21;
+  min-height: 36px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+.wv-draft.empty { color: #8696a0; font-style: italic; }
+.wv-send { width: 38px; height: 38px; border-radius: 50%; background: #00a884; color: #fff; border: 0; font-size: 15px;
+  cursor: pointer; font-family: inherit; flex: 0 0 38px; }
+.wv-send:hover { background: #029176; }
+.wv-tag { position: absolute; right: 10px; top: 42px; font-size: 10px; background: rgba(31,44,52,.78); color: #fff;
+  padding: 2px 7px; border-radius: 4px; pointer-events: none; }
+
+/* 注入标记：凡是我们塞进别人页面的东西，都带这条虚线 + 小标签 */
+.inject { border-left: 2px dashed #d97706; padding-left: 7px; margin-top: 5px; }
+.inject-tag { font-size: 9px; color: #b45309; letter-spacing: .3px; }
 
 .msg { max-width: 76%; margin-bottom: 10px; }
 .msg.in { margin-right: auto; }
 .msg.out { margin-left: auto; }
-.msg.sel .bubble { box-shadow: 0 0 0 2px #cfe0ff; }
-.bubble { padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.55; word-break: break-word; cursor: pointer; }
-.msg.in .bubble { background: #fff; border: 1px solid #e6e8ec; }
-.msg.out .bubble { background: #2f6fed; color: #fff; }
+.bubble { padding: 7px 10px; border-radius: 8px; font-size: 13px; line-height: 1.5; word-break: break-word; cursor: pointer;
+  box-shadow: 0 1px 1px rgba(11,20,26,.12); }
+.msg.in .bubble { background: #fff; }
+.msg.out .bubble { background: #d9fdd3; }
 .bubble.pending { background: #f1f3f6 !important; color: #8b93a1 !important; border: 1px dashed #d9dee6; font-style: italic; }
 .bubble.failed { background: #fff !important; color: #1b1f27 !important; border: 1px solid #f0c2be !important; }
 
@@ -101,6 +119,7 @@ body {
 .msg-alt .retry { color: #b42318; cursor: pointer; }
 .msg-foot { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 11px; color: #98a1b0; }
 .msg.out .msg-foot { justify-content: flex-end; }
+.msg.sel .bubble { box-shadow: 0 0 0 2px #f59e0b; }
 .phone-mark { background: #fff5e5; color: #b4560c; border: 1px solid #f2e2c4; border-radius: 4px; padding: 0 5px; font-size: 10px; }
 .deliv { font-size: 11px; color: #98a1b0; }
 .deliv.read { color: #2f6fed; }
@@ -113,13 +132,25 @@ body {
 .bar-btn:hover { background: #2f3947; color: #fff; }
 .bar-btn.warn { color: #f0a5a2; }
 
-/* ---------- 输入区：发送前确认（§三 C） ---------- */
-.composer-wrap { background: #fff; border-top: 1px solid #e6e8ec; }
+/* ---------- 外圈：我们自己的 DOM（不受对方改版影响） ---------- */
+.outer { background: #fff; border-top: 2px solid #1f2c34; }
+.outer-note { font-size: 10px; color: #c7d3da; background: #1f2c34; padding: 3px 14px; }
 .quote { display: flex; gap: 8px; align-items: center; margin: 8px 18px 0; padding: 6px 10px; background: #f2f6ff; border-left: 3px solid #2f6fed; border-radius: 4px; font-size: 12px; color: #4a5568; }
 .quote[hidden] { display: none; }   /* 显式声明：否则 display:flex 会盖掉 [hidden] */
 .quote .x { margin-left: auto; cursor: pointer; color: #98a1b0; }
 
-.preview { margin: 8px 18px 0; border: 1px solid #e6e8ec; border-radius: 8px; background: #fafbfc; padding: 7px 10px; }
+/* 出站确认层（覆盖对话区）—— 套壳下唯一可行的形态（SHELL-ROUTE.md §5.2） */
+.confirm { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(11,20,26,.45); z-index: 25;
+  display: flex; align-items: flex-start; justify-content: center; padding-top: 42px; }
+.confirm[hidden] { display: none; }
+.confirm-card { width: min(560px, 92%); background: #fff; border-radius: 12px; box-shadow: 0 12px 32px rgba(11,20,26,.3); overflow: hidden; }
+.confirm-head { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid #eef0f4; font-size: 12px; color: #5a6472; }
+.badge2 { background: #fdf0e3; color: #b4560c; border-radius: 999px; padding: 1px 8px; font-size: 10px; }
+.confirm-src { padding: 10px 14px 0; font-size: 13px; color: #1b1f27; line-height: 1.6; }
+.confirm-body { padding: 6px 14px 12px; }
+.confirm-foot { display: flex; gap: 8px; justify-content: flex-end; align-items: center; padding: 10px 14px; border-top: 1px solid #eef0f4; background: #fafbfc; }
+.confirm-foot .spacer { margin-right: auto; font-size: 11px; color: #98a1b0; }
+
 .preview-head { font-size: 11px; color: #7b8494; display: flex; align-items: center; gap: 8px; }
 .pv-state { color: #98a1b0; }
 .pv-state.ok { color: #1f7a3d; }
@@ -130,18 +161,16 @@ body {
 .terms { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
 .term { font-size: 11px; background: #eef7f0; border: 1px solid #cfe7d6; color: #1f7a3d; border-radius: 999px; padding: 1px 8px; cursor: pointer; }
 
-.quick { display: flex; gap: 6px; padding: 9px 18px 0; align-items: center; position: relative; }
+.quick { display: flex; gap: 6px; padding: 9px 18px 10px; align-items: center; position: relative; flex-wrap: wrap; }
 .qbtn { font-size: 12px; padding: 5px 10px; border: 1px solid #e6e8ec; border-radius: 8px; color: #5a6472; cursor: pointer; position: relative; }
 .qbtn:hover { border-color: #c9cfd9; }
 .qbtn .caret { color: #b8bfcb; margin-left: 3px; }
 .qbtn.note { border-style: dashed; color: #98a1b0; }
-.composer { display: flex; gap: 10px; align-items: center; padding: 9px 18px 6px; }
-.composer input { flex: 1; border: 1px solid #e6e8ec; border-radius: 8px; padding: 10px 12px; font-size: 13px; outline: none; font-family: inherit; }
-.composer input:focus { border-color: #2f6fed; }
-.btn { background: #2f6fed; color: #fff; border: 0; border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; font-family: inherit; }
+.btn { background: #2f6fed; color: #fff; border: 0; border-radius: 8px; padding: 9px 16px; font-size: 13px; cursor: pointer; font-family: inherit; }
 .btn:hover { background: #2560d8; }
 .btn:disabled { background: #c9cfd9; cursor: not-allowed; }
-.hint { font-size: 11px; color: #98a1b0; padding: 4px 18px 10px; }
+.btn.ghost { background: #fff; color: #5a6472; border: 1px solid #e6e8ec; }
+.btn.ghost:hover { background: #f4f5f8; }
 
 /* 话术弹层（插入 ≠ 发送） */
 .pop { position: absolute; bottom: 42px; left: 18px; width: 268px; background: #fff; border: 1px solid #e6e8ec;
@@ -199,7 +228,8 @@ body {
     <div class="nav-item dim" data-reserved="通话翻译">通话翻译</div>
 
     <div class="rail-foot">
-      v3 原型 · 只实现「客户会话」<br>
+      v4 原型 · 套壳形态<br>
+      中间为官方网页版占位<br>
       灰色项均为预留入口
     </div>
   </aside>
@@ -219,8 +249,17 @@ body {
       <div class="list-body" id="list"></div>
     </section>
 
-    <!-- ============ 对话区 ============ -->
+    <!-- ============ 对话区：官方网页版占位（v4） ============
+         这一栏里只有「宿主条」「标题行」与底部「外圈」是我们的 DOM；
+         中间整块是官方网页版，由 <webview> 加载，我们只能经注入层扩展。 -->
     <section class="col-chat">
+      <div class="host-bar">
+        <span>此区域 = 官方网页版</span><code>web.whatsapp.com</code>
+        <span>· webview · 适配 v5.2.57</span>
+        <span class="ok">选择器自检 正常</span>
+      </div>
+
+      <!-- 我们的：会话级信息（待跟进 + 账号连接），在网页版之外 -->
       <div class="chat-head">
         <div class="work-title">
           <span class="work-name" id="wName">—</span>
@@ -230,33 +269,52 @@ body {
         </div>
       </div>
 
-      <div class="chat-body" id="body"></div>
+      <!-- 别人的：官方网页版原样占满剩余空间 -->
+      <div class="wv">
+        <div class="wv-top" id="wvTop"></div>
+        <div class="wv-tag">官方网页版 · 非我们绘制</div>
+        <div class="wv-body" id="body"></div>
+        <div class="wv-composer">
+          <div class="wv-draft empty" id="wvDraft">网页版输入框 —— 我们只能「代写草稿」，不能另画一个</div>
+          <button class="wv-send" id="wvSend" title="点它 → 触发我们的出站拦截">➤</button>
+        </div>
+      </div>
 
-      <div class="composer-wrap">
+      <!-- 我们的：外圈（不受对方改版影响） -->
+      <div class="outer">
+        <div class="outer-note">↑ 以上为官方网页版（别人的页面）&nbsp; | &nbsp;↓ 以下为「外圈」：我们自己的 DOM</div>
+        <div class="quote" id="quote" hidden></div>
         <div class="quick" id="quick">
           <span class="qbtn" data-reserved="样板车">样板车</span>
           <span class="qbtn" data-reserved="素材库">素材库</span>
           <span class="qbtn" data-reserved="PI 合同">PI 合同</span>
           <span class="qbtn" data-reserved="地址·联系人名片">地址</span>
           <span class="qbtn" id="qScript">话术<span class="caret">▾</span></span>
-          <span class="qbtn note">插入 ≠ 发送：先进草稿，再走译文确认</span>
+          <span class="qbtn note">插入 ≠ 发送：代写进网页版输入框成草稿，再走译文确认</span>
           <div class="pop hidden" id="scriptPop"></div>
         </div>
+      </div>
 
-        <div class="quote" id="quote" hidden></div>
-
-        <!-- 发送前确认：常驻预览（§三 C） -->
-        <div class="preview" id="preview">
-          <div class="preview-head">将发送 · <span id="pvLang">English</span><span class="pv-state" id="pvState"></span></div>
-          <div class="preview-body muted" id="pvBody">输入中文，这里实时显示将发出的译文</div>
-          <div class="terms" id="terms"></div>
+      <!-- 出站确认层：拦下网页版「发送」后弹出（二期） -->
+      <div class="confirm" id="confirm" hidden>
+        <div class="confirm-card">
+          <div class="confirm-head">
+            出站拦截 · 先看译文再发
+            <span class="badge2">二期</span>
+            <span style="margin-left:auto">网页版的「发送」已被圈一 preload 拦下</span>
+          </div>
+          <div class="confirm-src" id="cfSrc"></div>
+          <div class="confirm-body">
+            <div class="preview-head">将发送 · <span id="pvLang">English</span><span class="pv-state" id="pvState"></span></div>
+            <div class="preview-body muted" id="pvBody">翻译中…</div>
+            <div class="terms" id="terms"></div>
+          </div>
+          <div class="confirm-foot">
+            <span class="spacer" id="cfHint"></span>
+            <button class="btn ghost" id="cfCancel">取消（草稿保留）</button>
+            <button class="btn" id="cfOk" disabled>确认并发出</button>
+          </div>
         </div>
-
-        <div class="composer">
-          <input id="input" placeholder="输入消息（中文写，自动译出）">
-          <button class="btn" id="send" disabled>发送</button>
-        </div>
-        <div class="hint" id="hint">演示环境：翻译由内置词表模拟（未接真实模型），术语表按规则替换 · 点消息出操作条 · 译文可就地改</div>
       </div>
     </section>
 
@@ -275,17 +333,17 @@ body {
 
 <script>
 /* =========================================================================
- * v3 原型：对话交互形态（§三）+ 会话组织模式（§四）
- * 与 v2 的关键差别：
- *   1. 消息模型把「方向」与「语言」解耦：body（实际传输的一份）+ translation（我方阅读语言的一份）
- *      —— 呈现只看语言，不再用 dir 猜哪边是原文
- *   2. 补 delivery（发送状态）与 translation.state（翻译状态）
- *   3. origin='phone' 在气泡上可见
- *   4. 消息可逐条操作（悬浮操作条）
- *   5. 发送前常驻译文预览（可编辑 + 术语可点 + 就绪前禁用发送）
- *   6. 右栏常驻，与输入区不再互斥
- *   7. 「24 小时窗口」三处全部换成「待跟进」
- *   8. 账号筛选器 + 连接状态
+ * v4 原型：套壳形态（Electron + 官方网页版 + 注入扩展，见 SHELL-ROUTE.md）
+ * 与 v3 的关键差别：
+ *   1. 对话区不再由我们绘制 —— 中间整块是官方网页版占位（.wv 及其内部）
+ *   2. 凡塞进别人页面的东西一律加「注入标记」（.inject + .inject-tag）：
+ *      译文副行、翻译状态、手机端标记、消息操作条；网页版原生的时间与勾**不标**
+ *   3. 输入框属于网页版 —— 我们只能「代写草稿」（#wvDraft），不能另画一个
+ *   4. 「发送前常驻预览」被推翻（SHELL-ROUTE.md §2.3）：
+ *      改为拦下网页版的发送 → 出覆盖式确认层（#confirm，标为二期）
+ *   5. 外圈（导航 / 会话列表 / 右栏 / 快捷插入栏）不受套壳影响，仍是自绘
+ * 自 v3 保留：消息模型解耦方向与语言、delivery / translation.state、
+ *   origin=phone 可见、逐条操作、右栏常驻、待跟进替代 24h 窗口、账号筛选器。
  * ========================================================================= */
 
 const OUR_LANG = 'zh-CN';
@@ -397,17 +455,21 @@ const glossary = {
   '1.5T':   { en: '1.5L turbo', note: '排量 + 涡轮增压' }
 };
 
-/* 话术库（带分组）—— 插入的是草稿，不是发送 */
+/* 话术库（带分组）—— 插入的是草稿，不是发送。含术语的那条用来演示「术语可点」 */
 const scripts = [
   { group: '报价', items: ['这是我们的 FOB 报价单，请查收。', '含运费的 CIF 价格是 24,600 USD。'] },
-  { group: '跟进', items: ['上次报的价，您考虑得怎么样？', '这批车库存不多，建议尽快确认。'] },
+  { group: '跟进', items: ['上次报的价，您考虑得怎么样？', '这批车库存不多，建议尽快确认。', '这批车是国六排放，配双离合变速箱。'] },
   { group: '我的收藏', items: [] }
 ];
 
 const state = {
   current: 'c1', filter: 'all', adv: null, acct: 'all',
   contrast: false, revealed: {}, sel: null, sideTab: 'profile', sideExpanded: false,
-  quote: null, pv: { state: 'empty', src: '', text: '', edited: false }
+  quote: null,
+  /* draft = 网页版输入框里的草稿（我们代写的）。插入 ≠ 发送：它只是草稿 */
+  draft: '',
+  /* pv = 出站确认层的状态（原 v3 的「常驻预览」已被套壳推翻，见文件头注释） */
+  pv: { state: 'empty', src: '', text: '', edited: false }
 };
 
 /* =========================== 工具函数 =========================== */
@@ -530,24 +592,38 @@ function renderList() {
     el.addEventListener('click', () => {
       state.current = el.dataset.id;
       state.revealed = {}; state.sel = null; state.quote = null;
-      renderList(); renderHead(); renderChat(); renderSide(); resetPreview();
+      renderList(); renderHead(); renderChat(); renderSide(); closeConfirm(); renderDraft();
       resolvePending(el.dataset.id);
     });
   });
 }
 
-/* =========================== 对话区 =========================== */
+/* =========================== 对话区（官方网页版占位） ===========================
+ * 注意：本节渲染出的 DOM **不代表我们自己的 UI**——它模拟"网页版会长什么样"，
+ * 好让「我们注入的部分」一眼可辨。真实实现里这一整块由 <webview> 加载，
+ * 我们只能通过 preload 注入（SHELL-ROUTE.md §五）。
+ * ========================================================================= */
 function renderChat() {
   const c = convs.find(x => x.id === state.current);
   const list = messages[c.id] || [];
   const body = document.getElementById('body');
   /* 同一会话内重渲染（点消息、展开副行）保留滚动位置，不跳到底部 */
   const keep = body.dataset.conv === state.current ? body.scrollTop : null;
-  let html = '';
+
+  /* 网页版自己的顶部条（群聊才有）——不是我们画的 */
+  const top = document.getElementById('wvTop');
   if (c.type === 'group') {
-    html += '<div class="group-head">群聊 · ' + esc(c.name) + ' · ' + c.members + ' 名成员' +
-      '<span class="lnk" data-reserved="成员列表">成员列表</span></div>';
+    top.style.display = '';
+    top.innerHTML = esc(c.name) + ' · ' + c.members + ' 名成员' +
+      '<span class="lnk" data-reserved="成员列表">成员列表</span>';
+    top.querySelectorAll('[data-reserved]').forEach(el => el.addEventListener('click', () =>
+      toast(el.dataset.reserved + '：尚未开放，仅为预留入口')));
+  } else {
+    top.style.display = 'none';
+    top.innerHTML = '';
   }
+
+  let html = '';
   if (!list.length) html += '<div class="empty">还没有消息</div>';
   html += list.map(m => renderMsg(m, c)).join('');
   body.innerHTML = html;
@@ -560,55 +636,60 @@ function renderMsg(m, c) {
   const tl = m.translation;
   const st = tl ? tl.state : 'none';
   const key = c.id + '-' + m.id;
-  let bubbleText, bubbleCls = '', altHtml = '', note = '';
+  let bubbleText, bubbleCls = '', altHtml = '', footInject = '';
 
+  /* ---- 气泡本体：这一部分是网页版画的，我们不碰 ---- */
   if (st === 'pending') {
     bubbleText = m.body.text;                      /* 先显示原文 */
     bubbleCls = ' pending';
-    note = '翻译中…';
   } else if (st === 'failed') {
     bubbleText = m.body.text;                      /* 消息绝不丢 */
     bubbleCls = ' failed';
-    note = '翻译失败';
   } else if (st === 'skipped') {
     bubbleText = isOurs(m) ? m.body.text : (tl.text || m.body.text);
-    note = '同语种 · 未翻译';
   } else if (st === 'done') {
     bubbleText = isOurs(m) ? m.body.text : tl.text;
   } else {
     bubbleText = m.body.text;
   }
 
-  /* 副行：语言与主气泡不同的那一侧（不再依赖方向） */
+  /* ---- 以下全部是【我们注入】的东西，一律带 .inject 标记 ---- */
   if (st === 'done') {
+    /* 副行：语言与主气泡不同的那一侧（不再依赖方向） */
     const altText = isOurs(m) ? (tl ? tl.text : '') : m.body.text;
     const label = altLabel(m);
     const shown = state.contrast || state.revealed[key];
-    altHtml = '<div class="msg-alt">' + (shown
+    altHtml = '<div class="msg-alt inject"><span class="inject-tag">注入 · 译文副行</span><br>' + (shown
       ? '<span class="label">' + label + '：</span>' + esc(altText) +
         (state.contrast ? '' : ' <span class="lnk" data-key="' + key + '">收起</span>')
       : '<span class="lnk" data-key="' + key + '">查看' + label + '</span>') + '</div>';
-  } else if (note) {
-    altHtml = '<div class="msg-alt">' + esc(note) +
-      (st === 'failed' ? ' · <span class="retry" data-retry="' + key + '">重试</span>' : '') + '</div>';
+  } else if (st === 'pending') {
+    altHtml = '<div class="msg-alt inject"><span class="inject-tag">注入 · 翻译状态</span><br>翻译中…</div>';
+  } else if (st === 'failed') {
+    altHtml = '<div class="msg-alt inject"><span class="inject-tag">注入 · 翻译状态</span><br>翻译失败 · ' +
+      '<span class="retry" data-retry="' + key + '">重试</span></div>';
+  } else if (st === 'skipped') {
+    altHtml = '<div class="msg-alt inject"><span class="inject-tag">注入 · 翻译状态</span><br>同语种 · 未翻译</div>';
   }
 
-  /* 出站发送状态 + origin 标记（§三 A / F） */
-  let foot = '';
-  if (m.direction === 'out') {
-    const d = deliveryMark(m.delivery);
-    foot = '<div class="msg-foot">' +
-      (m.origin === 'phone' ? '<span class="phone-mark">手机端 · 未经翻译</span>' : '') +
-      '<span class="deliv ' + m.delivery + '">' + d + '</span></div>';
-  } else if (m.origin === 'phone') {
-    foot = '<div class="msg-foot"><span class="phone-mark">手机端 · 未经翻译</span></div>';
+  /* origin 标记：手机手打绕过翻译层的缺口，必须显性化（§三 A） */
+  if (m.origin === 'phone') {
+    footInject = '<div class="msg-foot inject"><span class="inject-tag">注入 · 缺口标记</span>' +
+      '<span class="phone-mark">手机端 · 未经翻译</span></div>';
   }
 
-  const bar = state.sel === key ? renderBar(m, key) : '';
+  const bar = state.sel === key
+    ? '<div class="inject"><span class="inject-tag">注入 · 消息操作条</span>' + renderBar(m, key) + '</div>'
+    : '';
+
+  /* 时间与勾是网页版原生画的，故不加注入标记 */
+  const footNative = '<div class="msg-foot"><span class="deliv ' + m.delivery + '">' +
+    (m.direction === 'out' ? deliveryMark(m.delivery) : esc(m.sentAt)) + '</span></div>';
+
   return '<div class="msg ' + m.direction + (state.sel === key ? ' sel' : '') + '" data-key="' + key + '">' +
     bar +
     '<div class="bubble ' + bubbleCls.trim() + '" data-bubble="' + key + '">' + esc(bubbleText) + '</div>' +
-    altHtml + foot + '</div>';
+    footNative + altHtml + footInject + '</div>';
 }
 
 function deliveryMark(d) {
@@ -653,9 +734,7 @@ function bindChat(body) {
   body.querySelectorAll('.bar-btn').forEach(el => {
     el.addEventListener('click', e => { e.stopPropagation(); barAction(el.dataset.act, el.dataset.key); });
   });
-  body.querySelectorAll('.group-head .lnk').forEach(el => {
-    el.addEventListener('click', () => toast('成员列表：尚未开放，仅为预留入口'));
-  });
+  /* 群头（成员列表）在网页版的 .wv-top 里，由 renderChat 单独绑定 */
 }
 
 function findMsg(key) {
@@ -773,34 +852,66 @@ function syncSideToggle() {
   document.getElementById('sideToggle').textContent = state.sideExpanded ? '收起' : '展开';
 }
 
-/* =========================== 发送前确认（§三 C） =========================== */
-function resetPreview() {
-  state.pv = { state: 'empty', src: '', text: '', edited: false };
-  paintPreview();
+/* =========================== 出站确认层 ===========================
+ * v3 是「输入框下方常驻预览」；套壳下输入框属于官方网页版，**无法在其下方常驻任何东西**，
+ * 只能拦下网页版的发送动作 → 出覆盖层。见 SHELL-ROUTE.md §2.3 / §5.2。
+ * ================================================================= */
+function renderDraft() {
+  const el = document.getElementById('wvDraft');
+  const t = state.draft;
+  el.textContent = t || '网页版输入框 —— 我们只能「代写草稿」，不能另画一个';
+  el.className = 'wv-draft' + (t ? '' : ' empty');
 }
+
+/* 打开确认层：模拟「网页版的发送被圈一 preload 拦下」 */
+function openConfirm() {
+  const typed = state.draft.trim();
+  if (!typed) { toast('网页版输入框是空的 —— 先插入话术或直接在里面写'); return; }
+
+  document.getElementById('cfSrc').innerHTML =
+    '<span style="color:#7b8494">网页版输入框里的原文：</span><br>' + esc(typed);
+  document.getElementById('confirm').hidden = false;
+
+  const srcLang = guessLang(typed);
+  if (srcLang === 'en') {                 /* 同语种跳过（L2 的第 4 项） */
+    state.pv = { state: 'skipped', src: typed, text: typed, edited: false };
+    paintConfirm(); return;
+  }
+  state.pv = { state: 'pending', src: typed, text: '', edited: false };
+  paintConfirm();
+  clearTimeout(openConfirm._t);
+  openConfirm._t = setTimeout(() => {
+    if (state.pv.src !== typed || state.pv.state !== 'pending') return;
+    state.pv = { state: 'done', src: typed, text: mockTranslate(typed), edited: false };
+    paintConfirm();
+  }, 650);
+}
+
+function closeConfirm() { document.getElementById('confirm').hidden = true; }
 
 function guessLang(text) { return /[\u4e00-\u9fff]/.test(text) ? 'zh-CN' : 'en'; }
 
-function paintPreview() {
+function paintConfirm() {
   const pv = state.pv;
   const body = document.getElementById('pvBody');
   const st = document.getElementById('pvState');
-  const send = document.getElementById('send');
+  const ok = document.getElementById('cfOk');
+  document.getElementById('cfHint').textContent = '演示：未接真实模型；术语表按规则替换，词表未覆盖的词会原样保留';
 
   if (pv.state === 'empty') {
-    body.className = 'preview-body muted'; body.textContent = '输入中文，这里实时显示将发出的译文';
+    body.className = 'preview-body muted'; body.textContent = '—';
     body.contentEditable = 'false'; st.textContent = ''; st.className = 'pv-state';
-    renderTerms(''); send.disabled = true; send.textContent = '发送'; return;
+    renderTerms(''); ok.disabled = true; ok.textContent = '确认并发出'; return;
   }
   if (pv.state === 'pending') {
-    body.className = 'preview-body muted'; body.textContent = '翻译中…（译文就绪前不可发送）';
+    body.className = 'preview-body muted'; body.textContent = '翻译中…（就绪前不可发出）';
     body.contentEditable = 'false'; st.textContent = '· 翻译中'; st.className = 'pv-state busy';
-    renderTerms(pv.src); send.disabled = true; send.textContent = '翻译中…'; return;
+    renderTerms(pv.src); ok.disabled = true; ok.textContent = '翻译中…'; return;
   }
   if (pv.state === 'skipped') {
     body.className = 'preview-body'; body.textContent = pv.text;
     body.contentEditable = 'false'; st.textContent = '· 同语种，未翻译'; st.className = 'pv-state ok';
-    renderTerms(pv.src); send.disabled = false; send.textContent = '发送'; return;
+    renderTerms(pv.src); ok.disabled = false; ok.textContent = '确认并发出'; return;
   }
   /* done：可编辑 */
   body.className = 'preview-body'; body.textContent = pv.text;
@@ -808,7 +919,7 @@ function paintPreview() {
   st.textContent = pv.edited ? '· 已手工修改，将以修改版为准' : '· 可就地修改';
   st.className = 'pv-state ' + (pv.edited ? 'busy' : 'ok');
   renderTerms(pv.src);
-  send.disabled = false; send.textContent = '发送';
+  ok.disabled = false; ok.textContent = '确认并发出';
 }
 
 /* 术语命中 → 可点标记（§三 C）。检测的是**原文**：术语表在翻译前后各插一道，
@@ -823,24 +934,6 @@ function renderTerms(src) {
     const g = glossary[el.dataset.term];
     toast(el.dataset.term + ' → ' + g.en + '（' + g.note + '）');
   }));
-}
-
-function onInput() {
-  const text = document.getElementById('input').value.trim();
-  if (!text) { resetPreview(); return; }
-  const srcLang = guessLang(text);
-  if (srcLang === 'en') {                 /* 同语种跳过（L2 的第 4 项） */
-    state.pv = { state: 'skipped', src: text, text, edited: false };
-    paintPreview(); return;
-  }
-  state.pv = { state: 'pending', src: text, text: '', edited: false };
-  paintPreview();
-  clearTimeout(onInput._t);
-  onInput._t = setTimeout(() => {
-    if (state.pv.src !== text || state.pv.state !== 'pending') return;
-    state.pv = { state: 'done', src: text, text: mockTranslate(text), edited: false };
-    paintPreview();
-  }, 650);
 }
 
 function mockTranslate(zh) {
@@ -869,7 +962,7 @@ function renderQuote() {
   document.getElementById('qClose').addEventListener('click', () => { state.quote = null; renderQuote(); });
 }
 
-/* 话术弹层：插入的是草稿，不是发送（§三 D 纪律 1） */
+/* 话术弹层：插入 = 代写网页版输入框成草稿，不是发送（§三 D 纪律 1 / SHELL-ROUTE.md §5.3） */
 function renderScriptPop() {
   const pop = document.getElementById('scriptPop');
   pop.innerHTML = scripts.map(s =>
@@ -880,23 +973,21 @@ function renderScriptPop() {
   ).join('');
   pop.querySelectorAll('.pop-item[data-si]').forEach(el => el.addEventListener('click', () => {
     const s = scripts[+el.dataset.si], text = s.items[+el.dataset.i];
-    const input = document.getElementById('input');
-    input.value = state.quote ? (state.quote.text + '\n' + text) : text;
+    state.draft = state.quote ? (state.quote.text + '\n' + text) : text;
     pop.classList.add('hidden');
-    state.quote = null; renderQuote();
-    input.focus(); onInput();
-    toast('已插入草稿 —— 需确认译文后才能发送');
+    state.quote = null; renderQuote(); renderDraft();
+    toast('已代写进网页版输入框（草稿）—— 点 ➤ 才会触发拦截与确认');
   }));
 }
 
-function send() {
-  const input = document.getElementById('input');
-  const typed = input.value.trim();
-  if (!typed) return;
+/* 确认并发出 = 放行：代写回输入框并触达网页版的真实发送。
+   纪律：实际发出的文本可能与译文不同（业务员改过），落库要三份（SHELL-ROUTE.md §5.2） */
+function approveSend() {
   const pv = state.pv;
   if (pv.state !== 'done' && pv.state !== 'skipped') return;
-
+  const typed = pv.src;
   const finalEn = pv.state === 'skipped' ? typed : document.getElementById('pvBody').textContent.trim();
+
   const cid = state.current;
   if (!messages[cid]) messages[cid] = [];
   const id = 'n' + Date.now();
@@ -910,9 +1001,11 @@ function send() {
   };
   messages[cid].push(msg);
 
-  input.value = ''; state.quote = null; renderQuote(); resetPreview();
+  state.draft = ''; state.quote = null;
+  renderQuote(); renderDraft(); closeConfirm();
+  state.pv = { state: 'empty', src: '', text: '', edited: false };
 
-  /* 发送状态机：sending -> sent -> delivered -> read */
+  /* 发送状态机：sending -> sent -> delivered -> read（真实实现由网页版回执驱动） */
   const step = (s, delay) => setTimeout(() => {
     msg.delivery = s;
     if (state.current === cid) renderChat();
@@ -923,12 +1016,20 @@ function send() {
   const c = convs.find(x => x.id === cid);
   c.pendingH = null; c.preview = finalEn; c.time = '刚刚';
   renderHead(); renderList();
+  toast('已放行发出 · 落库三份：原文 / 译文 / 实际发出');
 }
 
 /* =========================== 事件绑定 =========================== */
-document.getElementById('input').addEventListener('input', onInput);
-document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-document.getElementById('send').addEventListener('click', send);
+/* 网页版的「发送」——真实实现里这个动作会被圈一 preload 拦下（SHELL-ROUTE.md §5.2） */
+document.getElementById('wvSend').addEventListener('click', openConfirm);
+document.getElementById('cfCancel').addEventListener('click', () => {
+  closeConfirm();
+  toast('已取消。草稿仍留在网页版输入框里，不会被发出');
+});
+document.getElementById('cfOk').addEventListener('click', approveSend);
+document.getElementById('confirm').addEventListener('click', e => {
+  if (e.target.id === 'confirm') closeConfirm();
+});
 
 document.getElementById('pvBody').addEventListener('input', () => {
   if (state.pv.state !== 'done') return;
@@ -977,7 +1078,7 @@ renderHead();
 renderChat();
 renderSide();
 renderQuote();
-resetPreview();
+renderDraft();
 syncSideToggle();
 resolvePending(state.current);
 </script>
