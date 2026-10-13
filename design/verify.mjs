@@ -35,18 +35,38 @@ if (m) {
   }
 }
 
-const zhCount = (html.match(/\bzh:\s*'/g) || []).length;
-const enCount = (html.match(/\ben:\s*'/g) || []).length;
-check('数据模型: 每条消息同时保留原文与译文', zhCount > 0 && zhCount === enCount, zhCount + ' vs ' + enCount);
+// ---- prototype.html v3：对话交互形态（§三）+ 会话组织模式（§四） ----
+const bodyCount = (html.match(/\bbody:\s*\{/g) || []).length;
+const transCount = (html.match(/\btranslation:/g) || []).length;
+check('原型: 消息模型把方向与语言解耦（body/translation 成对）', bodyCount > 0 && bodyCount === transCount, bodyCount + ' vs ' + transCount);
+check('原型: body 携带 lang（语言是数据不是代码）', /body:\s*\{\s*text:[^}]*lang:/.test(html));
+check('原型: translation 携带 state（翻译状态）', /translation:\s*\{[^}]*state:/.test(html));
+check('原型: 消息有发送状态 delivery', /delivery:\s*'(sending|sent|delivered|read|failed)'/.test(html));
+check('原型: 五种翻译状态齐备', ['none', 'pending', 'done', 'failed', 'skipped'].every(s => html.includes("'" + s + "'")));
+check('原型: 主气泡按语言选边（不再按方向猜原文）', html.includes('const OUR_LANG') && html.includes('m.body.lang === OUR_LANG'));
+check('原型: origin=phone 在气泡上可见', html.includes("origin: 'phone'") && html.includes('手机端 · 未经翻译'));
+check('原型: 消息悬浮操作条含必备动作', ['复制', '重译', '引用回复', '转发到右栏', '收藏为话术', '撤回'].every(s => html.includes(s)) && html.includes('msg-bar'));
+check('原型: 发送前有常驻译文预览且可就地编辑', html.includes('id="pvBody"') && html.includes('contentEditable'));
+check('原型: 译文就绪前禁用发送按钮', html.includes('send.disabled = true') && html.includes('翻译中…'));
+check('原型: 术语命中给可点标记', html.includes('const glossary') && html.includes('data-term') && html.includes('术语 · '));
+check('原型: 不再输出失效的窗口信息', !/窗口已关|窗口内 |窗口剩 |需模板消息触达|可自由回复/.test(html));
+check('原型: 待跟进三处齐备（chip / 列表徽章 / 标题行）',
+  html.includes("t: '待跟进'") && html.includes("'待跟进 · '") && (html.match(/待跟进/g) || []).length >= 3);
+check('原型: 会话列表有账号筛选器与连接状态', html.includes('id="acct"') && html.includes('s-ok') && html.includes('需重新扫码') && html.includes('连接断开'));
+check('原型: 右栏常驻且与输入区不再互斥', html.includes('class="col-side"') && !html.includes(".composer').style.display"));
+check('原型: 右栏可展开为覆盖层', html.includes('.col-side.expanded') && html.includes("classList.toggle('expanded'"));
+check('原型: 群组按会话类型处理（群头 + 成员数）', html.includes("type: 'group'") && html.includes('group-head') && html.includes('名成员'));
+check('原型: 常驻 chip 为未读/待跟进/群组，其余收进筛选', ["t: '未读'", "t: '待跟进'", "t: '群组'"].every(s => html.includes(s)) && html.includes('筛选 ▾'));
+check('原型: 插入 ≠ 发送（话术进草稿不直发）', html.includes('插入 ≠ 发送') && html.includes('已插入草稿'));
 
-const required = ['## 一、', '## 二、', '## 三、', '## 四、', '## 五、', '## 六、'];
-check('DESIGN.md: 六个章节齐全', required.every(s => md.includes(s)));
+const mdRequired = ['## 一、', '## 二、', '## 三、', '## 四、', '## 五、', '## 六、'];
+check('DESIGN.md: 六个章节齐全', mdRequired.every(s => md.includes(s)));
 check('DESIGN.md: 记录了未采纳的改动', md.includes('未采纳'));
 check('DESIGN.md: 记录了预留入口清单', md.includes('四、预留给后续模块的入口'));
 
 // ---- UNOFFICIAL-ROUTE.md ----
 const route = readFileSync(join(root, 'UNOFFICIAL-ROUTE.md'), 'utf8');
-check('ROUTE.md: 六个章节齐全', required.every(s => route.includes(s)));
+check('ROUTE.md: 六个章节齐全', mdRequired.every(s => route.includes(s)));
 check('ROUTE.md: 记录了决定与被接受的代价', route.includes('违反') && route.includes('ToS') && route.includes('封号作用于号码本身'));
 check('ROUTE.md: 明示产品不可对外销售', route.includes('不可对外销售'));
 check('ROUTE.md: 写明迁移预案', route.includes('迁移预案') && route.includes('CloudApiAdapter'));

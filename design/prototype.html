@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>海外汽车服务工作台 · 原型</title>
+<title>海外汽车服务工作台 · 原型 v3</title>
 <style>
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
@@ -11,9 +11,10 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-size: 13px; color: #1b1f27; background: #eef0f4;
 }
-.app { display: flex; height: 100vh; min-height: 620px; overflow: hidden; }
+.app { display: flex; height: 100vh; min-height: 640px; min-width: 1180px; overflow: hidden; }
 
-.rail { width: 212px; flex: 0 0 212px; background: #1c2029; display: flex; flex-direction: column; padding: 14px 10px 10px; }
+/* ---------- 左侧导航（沿用 v2 决定：账号管理留在导航） ---------- */
+.rail { width: 200px; flex: 0 0 200px; background: #1c2029; display: flex; flex-direction: column; padding: 14px 10px 10px; }
 .brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 12px; color: #fff; font-size: 13px; font-weight: 600; }
 .brand .dot { width: 7px; height: 7px; border-radius: 50%; background: #3fb950; flex: 0 0 7px; }
 .nav-group { padding: 11px 8px 5px; font-size: 11px; color: #5d6675; }
@@ -26,14 +27,28 @@ body {
 .rail-sep { margin: 12px 8px 4px; border-top: 1px solid #2b313d; }
 .rail-foot { margin-top: auto; padding: 8px; font-size: 11px; color: #5d6675; line-height: 1.6; }
 
-.main { flex: 1; display: flex; min-width: 0; }
+.main { flex: 1; display: flex; min-width: 0; position: relative; }
 
-.col-list { width: 284px; flex: 0 0 284px; background: #fff; border-right: 1px solid #e6e8ec; display: flex; flex-direction: column; }
+/* ---------- 会话列表 ---------- */
+.col-list { width: 272px; flex: 0 0 272px; background: #fff; border-right: 1px solid #e6e8ec; display: flex; flex-direction: column; }
 .list-head { padding: 12px 14px 10px; border-bottom: 1px solid #eef0f4; }
 .search { background: #f4f5f8; border-radius: 8px; padding: 7px 10px; color: #98a1b0; font-size: 12px; }
-.filters { display: flex; gap: 6px; margin-top: 10px; }
-.chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid #e6e8ec; color: #5a6472; cursor: pointer; }
+
+/* 账号筛选器（§四 A）—— 与导航里的「WA 账号矩阵」是两件事 */
+.acct { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
+.acct-item { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid #e6e8ec; color: #5a6472; cursor: pointer; }
+.acct-item.on { background: #eef3ff; border-color: #b9ccf5; color: #1f4fb8; }
+.acct-dot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 6px; }
+.s-ok { background: #3fb950; } .s-warn { background: #e0a12b; } .s-down { background: #e5484d; }
+
+/* 常驻 3 chip + 其余收进「筛选」（§四 B） */
+.filters { display: flex; gap: 6px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
+.chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid #e6e8ec; color: #5a6472; cursor: pointer; white-space: nowrap; }
 .chip.on { background: #2f6fed; border-color: #2f6fed; color: #fff; }
+.chip.more { border-style: dashed; }
+.chip.adv { background: #eef3ff; border-color: #b9ccf5; color: #1f4fb8; }
+.chip .x { margin-left: 5px; color: #7f96c9; }
+
 .list-body { flex: 1; overflow-y: auto; }
 .conv { padding: 11px 14px; border-bottom: 1px solid #f4f5f8; cursor: pointer; }
 .conv:hover { background: #fafbfc; }
@@ -43,56 +58,120 @@ body {
 .conv-time { font-size: 11px; color: #98a1b0; flex: 0 0 auto; }
 .conv-meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
 .conv-country { font-size: 12px; color: #5a6472; }
-.badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; flex: 0 0 auto; }
-.badge.open { background: #e8f6ec; color: #1f7a3d; }
-.badge.closed { background: #fdf0e3; color: #b4560c; }
+.badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; flex: 0 0 auto; white-space: nowrap; }
+.badge.follow { background: #fdf0e3; color: #b4560c; }
+.badge.follow.urgent { background: #fdecea; color: #b42318; }
+.badge.done { background: #f1f3f6; color: #8b93a1; }
 .unread { background: #2f6fed; color: #fff; font-size: 10px; border-radius: 999px; padding: 1px 6px; }
+.grp-mark { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #eef3ff; color: #2f6fed; }
 .conv-preview { font-size: 12px; color: #98a1b0; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.col-work { flex: 1; min-width: 0; background: #f6f7f9; display: flex; flex-direction: column; }
-.work-head { background: #fff; border-bottom: 1px solid #e6e8ec; padding: 13px 18px 0; }
+/* ---------- 对话区（永远在左，§三 E） ---------- */
+.col-chat { flex: 1; min-width: 0; background: #f6f7f9; display: flex; flex-direction: column; }
+.chat-head { background: #fff; border-bottom: 1px solid #e6e8ec; padding: 12px 18px; }
 .work-title { display: flex; align-items: baseline; gap: 10px; }
 .work-name { font-size: 15px; font-weight: 600; }
 .work-sub { font-size: 12px; color: #5a6472; }
-.win { margin-left: auto; font-size: 12px; }
-.win.open { color: #1f7a3d; }
-.win.closed { color: #b4560c; }
-.tabs { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
-.tab { padding-bottom: 9px; font-size: 13px; color: #7b8494; cursor: pointer; border-bottom: 2px solid transparent; }
-.tab.on { color: #1b1f27; font-weight: 600; border-bottom-color: #2f6fed; }
-.contrast { margin-left: auto; padding-bottom: 9px; font-size: 12px; color: #2f6fed; cursor: pointer; }
-.contrast.off { color: #98a1b0; }
-.work-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
-.msg { max-width: 74%; margin-bottom: 10px; }
+.follow { margin-left: auto; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #fdf0e3; color: #b4560c; }
+.follow.urgent { background: #fdecea; color: #b42318; }
+.follow.done { background: #f1f3f6; color: #8b93a1; }
+.acct-state { font-size: 12px; color: #5a6472; display: flex; align-items: center; gap: 5px; }
+.acct-state .acct-dot { width: 7px; height: 7px; }
+
+.chat-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+
+.group-head { display: flex; align-items: center; gap: 8px; background: #eef3ff; border: 1px solid #d6e2fb; color: #1f4fb8;
+  border-radius: 10px; padding: 8px 12px; font-size: 12px; margin-bottom: 12px; }
+.group-head .lnk { color: #1f4fb8; cursor: pointer; text-decoration: underline; margin-left: auto; }
+
+.msg { max-width: 76%; margin-bottom: 10px; }
 .msg.in { margin-right: auto; }
 .msg.out { margin-left: auto; }
-.bubble { padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.55; word-break: break-word; }
+.msg.sel .bubble { box-shadow: 0 0 0 2px #cfe0ff; }
+.bubble { padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.55; word-break: break-word; cursor: pointer; }
 .msg.in .bubble { background: #fff; border: 1px solid #e6e8ec; }
 .msg.out .bubble { background: #2f6fed; color: #fff; }
+.bubble.pending { background: #f1f3f6 !important; color: #8b93a1 !important; border: 1px dashed #d9dee6; font-style: italic; }
+.bubble.failed { background: #fff !important; color: #1b1f27 !important; border: 1px solid #f0c2be !important; }
+
 .msg-alt { font-size: 11px; color: #98a1b0; margin-top: 5px; line-height: 1.6; }
 .msg.out .msg-alt { text-align: right; }
 .msg-alt .lnk { color: #2f6fed; cursor: pointer; }
 .msg-alt .label { color: #b8bfcb; }
-.pane { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 4px 16px; }
-.field { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f5f8; font-size: 13px; }
-.field:last-child { border-bottom: 0; }
-.field .k { width: 92px; flex: 0 0 92px; color: #7b8494; }
-.field .v { color: #1b1f27; }
-.field .v.muted { color: #b8bfcb; }
-.pane-title { font-size: 12px; color: #7b8494; margin: 0 0 4px; padding-top: 14px; }
-.notice { background: #fdf7ec; border: 1px solid #f2e2c4; color: #8a6212; border-radius: 10px; padding: 12px 14px; font-size: 12px; line-height: 1.7; margin-top: 12px; }
-.empty { text-align: center; color: #98a1b0; padding: 30px 10px; font-size: 13px; }
-.quick { display: flex; gap: 6px; padding: 10px 18px 0; background: #fff; border-top: 1px solid #e6e8ec; }
-.qbtn { font-size: 12px; padding: 5px 10px; border: 1px solid #e6e8ec; border-radius: 8px; color: #5a6472; cursor: pointer; }
+.msg-alt .retry { color: #b42318; cursor: pointer; }
+.msg-foot { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 11px; color: #98a1b0; }
+.msg.out .msg-foot { justify-content: flex-end; }
+.phone-mark { background: #fff5e5; color: #b4560c; border: 1px solid #f2e2c4; border-radius: 4px; padding: 0 5px; font-size: 10px; }
+.deliv { font-size: 11px; color: #98a1b0; }
+.deliv.read { color: #2f6fed; }
+.deliv.failed { color: #b42318; }
+
+/* 消息悬浮操作条（§三 B） */
+.msg-bar { display: flex; gap: 2px; background: #1c2029; border-radius: 8px; padding: 3px; margin-bottom: 5px; width: max-content; }
+.msg.out .msg-bar { margin-left: auto; }
+.bar-btn { font-size: 11px; color: #d3d9e3; padding: 3px 7px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.bar-btn:hover { background: #2f3947; color: #fff; }
+.bar-btn.warn { color: #f0a5a2; }
+
+/* ---------- 输入区：发送前确认（§三 C） ---------- */
+.composer-wrap { background: #fff; border-top: 1px solid #e6e8ec; }
+.quote { display: flex; gap: 8px; align-items: center; margin: 8px 18px 0; padding: 6px 10px; background: #f2f6ff; border-left: 3px solid #2f6fed; border-radius: 4px; font-size: 12px; color: #4a5568; }
+.quote[hidden] { display: none; }   /* 显式声明：否则 display:flex 会盖掉 [hidden] */
+.quote .x { margin-left: auto; cursor: pointer; color: #98a1b0; }
+
+.preview { margin: 8px 18px 0; border: 1px solid #e6e8ec; border-radius: 8px; background: #fafbfc; padding: 7px 10px; }
+.preview-head { font-size: 11px; color: #7b8494; display: flex; align-items: center; gap: 8px; }
+.pv-state { color: #98a1b0; }
+.pv-state.ok { color: #1f7a3d; }
+.pv-state.busy { color: #b4560c; }
+.preview-body { font-size: 13px; color: #1b1f27; margin-top: 4px; line-height: 1.55; min-height: 19px; outline: none; white-space: pre-wrap; }
+.preview-body[contenteditable="true"] { border-bottom: 1px dashed #c9cfd9; }
+.preview-body.muted { color: #98a1b0; font-style: italic; }
+.terms { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.term { font-size: 11px; background: #eef7f0; border: 1px solid #cfe7d6; color: #1f7a3d; border-radius: 999px; padding: 1px 8px; cursor: pointer; }
+
+.quick { display: flex; gap: 6px; padding: 9px 18px 0; align-items: center; position: relative; }
+.qbtn { font-size: 12px; padding: 5px 10px; border: 1px solid #e6e8ec; border-radius: 8px; color: #5a6472; cursor: pointer; position: relative; }
 .qbtn:hover { border-color: #c9cfd9; }
-.composer { display: flex; gap: 10px; align-items: center; padding: 10px 18px 8px; background: #fff; }
+.qbtn .caret { color: #b8bfcb; margin-left: 3px; }
+.qbtn.note { border-style: dashed; color: #98a1b0; }
+.composer { display: flex; gap: 10px; align-items: center; padding: 9px 18px 6px; }
 .composer input { flex: 1; border: 1px solid #e6e8ec; border-radius: 8px; padding: 10px 12px; font-size: 13px; outline: none; font-family: inherit; }
 .composer input:focus { border-color: #2f6fed; }
 .btn { background: #2f6fed; color: #fff; border: 0; border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; font-family: inherit; }
 .btn:hover { background: #2560d8; }
-.hint { font-size: 11px; color: #98a1b0; padding: 0 18px 12px; background: #fff; }
+.btn:disabled { background: #c9cfd9; cursor: not-allowed; }
+.hint { font-size: 11px; color: #98a1b0; padding: 4px 18px 10px; }
 
-.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #1c2029; color: #fff; padding: 9px 16px; border-radius: 8px; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity .18s; }
+/* 话术弹层（插入 ≠ 发送） */
+.pop { position: absolute; bottom: 42px; left: 18px; width: 268px; background: #fff; border: 1px solid #e6e8ec;
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(24,32,48,.14); padding: 8px; z-index: 20; }
+.pop.hidden { display: none; }
+.pop-group { font-size: 11px; color: #98a1b0; padding: 6px 8px 3px; }
+.pop-item { font-size: 12px; color: #1b1f27; padding: 7px 8px; border-radius: 6px; cursor: pointer; line-height: 1.5; }
+.pop-item:hover { background: #f2f6ff; }
+
+/* ---------- 右常驻栏：客户档案 / 成本精算（§三 E） ---------- */
+.col-side { width: 320px; flex: 0 0 320px; background: #fff; border-left: 1px solid #e6e8ec; display: flex; flex-direction: column; }
+.col-side.expanded { position: absolute; top: 0; right: 0; bottom: 0; width: min(660px, 62%); z-index: 30;
+  box-shadow: -10px 0 28px rgba(24,32,48,.12); }
+.side-head { display: flex; align-items: center; gap: 14px; padding: 12px 16px 0; border-bottom: 1px solid #eef0f4; }
+.side-tab { padding-bottom: 9px; font-size: 13px; color: #7b8494; cursor: pointer; border-bottom: 2px solid transparent; }
+.side-tab.on { color: #1b1f27; font-weight: 600; border-bottom-color: #2f6fed; }
+.side-toggle { margin-left: auto; padding-bottom: 9px; font-size: 12px; color: #2f6fed; cursor: pointer; }
+.side-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.pane { background: #fff; border: 1px solid #e6e8ec; border-radius: 10px; padding: 4px 14px; }
+.field { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f5f8; font-size: 13px; }
+.field:last-child { border-bottom: 0; }
+.field .k { width: 84px; flex: 0 0 84px; color: #7b8494; }
+.field .v { color: #1b1f27; }
+.field .v.muted { color: #b8bfcb; }
+.pane-title { font-size: 12px; color: #7b8494; margin: 14px 0 6px; }
+.notice { background: #fdf7ec; border: 1px solid #f2e2c4; color: #8a6212; border-radius: 10px; padding: 11px 13px; font-size: 12px; line-height: 1.7; margin-top: 12px; }
+.notice.blue { background: #f2f6ff; border-color: #d6e2fb; color: #1f4fb8; }
+.empty { text-align: center; color: #98a1b0; padding: 26px 10px; font-size: 13px; }
+
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #1c2029; color: #fff; padding: 9px 16px; border-radius: 8px; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 50; }
 .toast.show { opacity: 1; }
 </style>
 </head>
@@ -120,90 +199,659 @@ body {
     <div class="nav-item dim" data-reserved="通话翻译">通话翻译</div>
 
     <div class="rail-foot">
-      v2 原型 · 只实现「客户会话」<br>
+      v3 原型 · 只实现「客户会话」<br>
       灰色项均为预留入口
     </div>
   </aside>
 
   <div class="main">
+    <!-- ============ 会话列表 ============ -->
     <section class="col-list">
       <div class="list-head">
         <div class="search">搜索客户 / 公司 / 号码</div>
-        <div class="filters">
-          <span class="chip on" data-filter="all">全部</span>
-          <span class="chip" data-filter="unread">未读</span>
-          <span class="chip" data-filter="closed">窗口已关</span>
-        </div>
+
+        <!-- 账号筛选器：按号看会话 + 每号连接状态（§四 A / §三 F） -->
+        <div class="acct" id="acct"></div>
+
+        <!-- 常驻 3 chip + 其余收进「筛选」（§四 B） -->
+        <div class="filters" id="filters"></div>
       </div>
       <div class="list-body" id="list"></div>
     </section>
 
-    <section class="col-work">
-      <div class="work-head">
+    <!-- ============ 对话区 ============ -->
+    <section class="col-chat">
+      <div class="chat-head">
         <div class="work-title">
           <span class="work-name" id="wName">—</span>
           <span class="work-sub" id="wSub"></span>
-          <span class="win" id="wWin"></span>
-        </div>
-        <div class="tabs">
-          <span class="tab on" data-tab="chat">对话</span>
-          <span class="tab" data-tab="profile">客户档案</span>
-          <span class="tab" data-tab="cost">成本精算</span>
-          <span class="contrast off" id="contrast">对照：关</span>
+          <span class="follow" id="wFollow"></span>
+          <span class="acct-state" id="wAcct"></span>
         </div>
       </div>
-      <div class="work-body" id="body"></div>
-      <div class="quick" id="quick">
-        <span class="qbtn" data-reserved="样板车">样板车</span>
-        <span class="qbtn" data-reserved="素材库">素材库</span>
-        <span class="qbtn" data-reserved="PI 合同">PI 合同</span>
-        <span class="qbtn" data-reserved="地址">地址</span>
+
+      <div class="chat-body" id="body"></div>
+
+      <div class="composer-wrap">
+        <div class="quick" id="quick">
+          <span class="qbtn" data-reserved="样板车">样板车</span>
+          <span class="qbtn" data-reserved="素材库">素材库</span>
+          <span class="qbtn" data-reserved="PI 合同">PI 合同</span>
+          <span class="qbtn" data-reserved="地址·联系人名片">地址</span>
+          <span class="qbtn" id="qScript">话术<span class="caret">▾</span></span>
+          <span class="qbtn note">插入 ≠ 发送：先进草稿，再走译文确认</span>
+          <div class="pop hidden" id="scriptPop"></div>
+        </div>
+
+        <div class="quote" id="quote" hidden></div>
+
+        <!-- 发送前确认：常驻预览（§三 C） -->
+        <div class="preview" id="preview">
+          <div class="preview-head">将发送 · <span id="pvLang">English</span><span class="pv-state" id="pvState"></span></div>
+          <div class="preview-body muted" id="pvBody">输入中文，这里实时显示将发出的译文</div>
+          <div class="terms" id="terms"></div>
+        </div>
+
+        <div class="composer">
+          <input id="input" placeholder="输入消息（中文写，自动译出）">
+          <button class="btn" id="send" disabled>发送</button>
+        </div>
+        <div class="hint" id="hint">演示环境：翻译由内置词表模拟（未接真实模型），术语表按规则替换 · 点消息出操作条 · 译文可就地改</div>
       </div>
-      <div class="composer">
-        <input id="input" placeholder="输入消息（中文写，自动译出）">
-        <button class="btn" id="send">发送</button>
-      </div>
-      <div class="hint">演示环境：翻译由内置词表模拟，未接真实模型</div>
     </section>
+
+    <!-- ============ 右常驻栏（不再与输入区互斥） ============ -->
+    <aside class="col-side" id="side">
+      <div class="side-head">
+        <span class="side-tab on" data-stab="profile">客户档案</span>
+        <span class="side-tab" data-stab="cost">成本精算</span>
+        <span class="side-toggle" id="sideToggle">展开</span>
+      </div>
+      <div class="side-body" id="sideBody"></div>
+    </aside>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
+/* =========================================================================
+ * v3 原型：对话交互形态（§三）+ 会话组织模式（§四）
+ * 与 v2 的关键差别：
+ *   1. 消息模型把「方向」与「语言」解耦：body（实际传输的一份）+ translation（我方阅读语言的一份）
+ *      —— 呈现只看语言，不再用 dir 猜哪边是原文
+ *   2. 补 delivery（发送状态）与 translation.state（翻译状态）
+ *   3. origin='phone' 在气泡上可见
+ *   4. 消息可逐条操作（悬浮操作条）
+ *   5. 发送前常驻译文预览（可编辑 + 术语可点 + 就绪前禁用发送）
+ *   6. 右栏常驻，与输入区不再互斥
+ *   7. 「24 小时窗口」三处全部换成「待跟进」
+ *   8. 账号筛选器 + 连接状态
+ * ========================================================================= */
+
+const OUR_LANG = 'zh-CN';
+const FOLLOW_THRESHOLD_H = 4;   // 待跟进阈值：对方最后发言后超过 4h 未回即标红
+
+/* ---------------- 账号（非官方路线：一个号 = 一个 linked device 会话） ---------------- */
+const accounts = [
+  { id: 'all', name: '全部', status: 'ok', label: '全部账号' },
+  { id: 'a1', name: '销售 A 号', status: 'ok',   label: '已连接' },
+  { id: 'a2', name: '销售 B 号', status: 'warn', label: '需重新扫码' },
+  { id: 'a3', name: '销售 C 号', status: 'down', label: '连接断开' }
+];
+const accountName = id => (accounts.find(a => a.id === id) || {}).name || id;
+
+/* ---------------- 会话 ---------------- */
 const convs = [
-  { id: 'c1', name: 'Ahmed Trading Ltd', country: '尼日利亚', city: '拉各斯', stage: '询价中', winH: 21, unread: 2,
-    preview: '付款方式有什么要求吗？', time: '19:01', account: '销售 A 号', first: '2026-09-18', tags: '重卡 · HOWO' },
-  { id: 'c2', name: 'Musa Logistics', country: '加纳', city: '阿克拉', stage: '已报价', winH: 0, unread: 0,
-    preview: '需要重新发模板消息触达', time: '17:26', account: '销售 B 号', first: '2026-08-30', tags: '重卡 · SHACMAN' },
-  { id: 'c3', name: 'Kofi Auto Parts', country: '尼日利亚', city: '卡诺', stage: '老客户', winH: 4, unread: 0,
-    preview: 'How are you doing', time: '05:14', account: '销售 A 号', first: '2026-03-11', tags: '配件' },
-  { id: 'c4', name: 'Tunde Motors', country: '尼日利亚', city: '阿布贾', stage: '首询', winH: 23, unread: 1,
-    preview: 'Please send me your price list', time: '昨天', account: '销售 C 号', first: '2026-10-11', tags: '重卡' },
-  { id: 'c5', name: 'Zawadi Imports', country: '坦桑尼亚', city: '达累斯萨拉姆', stage: '询价中', winH: 0, unread: 0,
-    preview: '右舵车你们有吗？', time: '昨天', account: '销售 B 号', first: '2026-09-02', tags: '重卡' }
+  { id: 'c1', type: 'direct', name: 'Ahmed Trading Ltd', country: '尼日利亚', city: '拉各斯', stage: '询价中',
+    account: 'a1', pendingH: 0.6, unread: 2, preview: '付款方式有什么要求吗？', time: '19:01',
+    first: '2026-09-18', tags: '重卡 · HOWO', customerId: 'cu1', pinned: true, archived: false },
+  { id: 'c2', type: 'direct', name: 'Musa Logistics', country: '加纳', city: '阿克拉', stage: '已报价',
+    account: 'a2', pendingH: null, unread: 0, preview: 'Noted. I will wait for your reply.', time: '17:26',
+    first: '2026-08-30', tags: '重卡 · SHACMAN', customerId: 'cu2', pinned: false, archived: false },
+  { id: 'c3', type: 'direct', name: 'Kofi Auto Parts', country: '尼日利亚', city: '卡诺', stage: '老客户',
+    account: 'a1', pendingH: 5.2, unread: 0, preview: 'How are you doing', time: '05:14',
+    first: '2026-03-11', tags: '配件', customerId: 'cu3', pinned: false, archived: false },
+  { id: 'c4', type: 'direct', name: 'Tunde Motors', country: '尼日利亚', city: '阿布贾', stage: '首询',
+    account: 'a3', pendingH: 0.2, unread: 1, preview: 'Please send me your price list', time: '昨天',
+    first: '2026-10-11', tags: '重卡', customerId: 'cu4', pinned: false, archived: false },
+  { id: 'c5', type: 'direct', name: 'Zawadi Imports', country: '坦桑尼亚', city: '达累斯萨拉姆', stage: '询价中',
+    account: 'a2', pendingH: 26, unread: 0, preview: 'Do you have right-hand drive trucks?', time: '昨天',
+    first: '2026-09-02', tags: '重卡', customerId: 'cu5', pinned: false, archived: false },
+  { id: 'c6', type: 'group', name: '尼日利亚重卡采购群', members: 12, country: '尼日利亚', city: '—', stage: '询价中',
+    account: 'a1', pendingH: 1.5, unread: 3, preview: "What's the CIF price to Lagos?", time: '18:20',
+    first: '2026-07-04', tags: '群聊 · 采购', customerId: 'cu6', pinned: false, archived: false }
 ];
 
+/* ---------------- 消息 ----------------
+ * body        = 实际传输的那一份（对海外客户即外语）
+ * translation = 我方阅读语言那一份（state 走 none/pending/done/failed/skipped）
+ * delivery    = 仅出站有意义
+ * origin      = system（电脑端，经翻译层）| phone（手机手打，绕过翻译层）
+ */
 const messages = {
   c1: [
-    { dir: 'in',  zh: '这款车型可以升级吗？', en: 'Is this model available for upgrade?', time: '18:54' },
-    { dir: 'out', zh: '可以升级双悬挂系统，需要额外 1,000 USD。', en: 'This model can be upgraded to a dual-suspension system, but it costs an additional 1,000 USD.', time: '18:54' },
-    { dir: 'out', zh: '也可以直接选这款，稍贵一些，24,600 USD。', en: 'You can also choose this one directly; it is a bit more expensive, costing 24,600 USD.', time: '18:57' },
-    { dir: 'in',  zh: '付款方式有什么要求吗？', en: 'Do you have any requirements for the payment terms?', time: '19:01' }
+    { id: 'm1', direction: 'in', origin: 'system',
+      body: { text: 'Is this model available for upgrade?', lang: 'en' },
+      translation: { text: '这款车型可以升级吗？', lang: OUR_LANG, state: 'done' },
+      delivery: 'read', sentAt: '18:54' },
+    { id: 'm2', direction: 'out', origin: 'system',
+      body: { text: 'This model can be upgraded with a dual-suspension system, but it costs an additional 1,000 USD.', lang: 'en' },
+      translation: { text: '可以升级双悬挂系统，需要额外 1,000 USD。', lang: OUR_LANG, state: 'done' },
+      delivery: 'delivered', sentAt: '18:54' },
+    { id: 'm3', direction: 'out', origin: 'phone',
+      body: { text: 'You can also choose this one directly, at 24,600 USD.', lang: 'en' },
+      translation: { text: '也可以直接选这款，稍贵一些，24,600 USD。', lang: OUR_LANG, state: 'done' },
+      delivery: 'read', sentAt: '18:57' },
+    { id: 'm4', direction: 'in', origin: 'system',
+      body: { text: 'Do you have any requirements for the payment terms?', lang: 'en' },
+      translation: { text: '付款方式有什么要求吗？', lang: OUR_LANG, state: 'done' },
+      delivery: 'read', sentAt: '19:01' }
   ],
   c2: [
-    { dir: 'out', zh: '这是 FOB 报价单，请查收。', en: 'Here is the FOB quotation, please check.', time: '17:20' },
-    { dir: 'in',  zh: '收到了，我明天回复你。', en: 'Got it, I will reply to you tomorrow.', time: '17:26' }
+    { id: 'm1', direction: 'out', origin: 'system',
+      body: { text: 'Here is the FOB quotation, please check.', lang: 'en' },
+      translation: { text: '这是 FOB 报价单，请查收。', lang: OUR_LANG, state: 'done' },
+      delivery: 'read', sentAt: '17:20' },
+    { id: 'm2', direction: 'in', origin: 'system',
+      body: { text: 'Got it, I will reply to you tomorrow.', lang: 'en' },
+      translation: { text: '收到了，我明天回复你。', lang: OUR_LANG, state: 'done' },
+      delivery: 'read', sentAt: '17:26' },
+    { id: 'm3', direction: 'out', origin: 'system',
+      body: { text: 'Noted. I will wait for your reply. Any question, just call me.', lang: 'en' },
+      translation: { text: '', lang: OUR_LANG, state: 'skipped' },
+      delivery: 'delivered', sentAt: '17:28' }
   ],
   c3: [
-    { dir: 'in',  zh: '你好，最近怎么样？', en: 'How are you doing', time: '05:14' }
+    { id: 'm1', direction: 'in', origin: 'system',
+      body: { text: 'How are you doing', lang: 'en' },
+      translation: { text: '你好，最近怎么样？', lang: OUR_LANG, state: 'done' },
+      delivery: 'read', sentAt: '05:14' }
   ],
   c4: [
-    { dir: 'in',  zh: '请把你们的价目表发给我。', en: 'Please send me your price list', time: '昨天' }
+    /* state=pending：先显示原文，译文后补（异步翻译的可视化） */
+    { id: 'm1', direction: 'in', origin: 'system',
+      body: { text: 'Please send me your price list', lang: 'en' },
+      translation: { text: '', lang: OUR_LANG, state: 'pending' },
+      delivery: 'read', sentAt: '昨天', _seed: '请把你们的价目表发给我。' }
   ],
   c5: [
-    { dir: 'in',  zh: '右舵车你们有吗？', en: 'Do you have right-hand drive trucks?', time: '昨天' }
+    /* state=failed：主气泡回落到原文，消息绝不丢，副行给重试 */
+    { id: 'm1', direction: 'in', origin: 'system',
+      body: { text: 'Do you have right-hand drive trucks?', lang: 'en' },
+      translation: { text: '', lang: OUR_LANG, state: 'failed' },
+      delivery: 'read', sentAt: '昨天', _seed: '你们有右舵车吗？' }
+  ],
+  c6: [
+    { id: 'm1', direction: 'in', origin: 'system', from: 'Chidi (Procurement)',
+      body: { text: "What's the CIF price to Lagos?", lang: 'en' },
+      translation: { text: '到拉各斯的 CIF 价格是多少？', lang: OUR_LANG, state: 'done' },
+      delivery: 'read', sentAt: '18:20' }
   ]
 };
+
+/* 术语表：命中即给可点标记（§三 C · 直连 glossary.ts） */
+const glossary = {
+  '国六':   { en: 'China VI', note: '中国第六阶段机动车污染物排放标准' },
+  '双离合': { en: 'dual-clutch (DCT)', note: '变速器类型，出口报价里常按配置加价' },
+  '事故车': { en: 'accident-damaged vehicle', note: '车况描述，必须显式声明' },
+  '1.5T':   { en: '1.5L turbo', note: '排量 + 涡轮增压' }
+};
+
+/* 话术库（带分组）—— 插入的是草稿，不是发送 */
+const scripts = [
+  { group: '报价', items: ['这是我们的 FOB 报价单，请查收。', '含运费的 CIF 价格是 24,600 USD。'] },
+  { group: '跟进', items: ['上次报的价，您考虑得怎么样？', '这批车库存不多，建议尽快确认。'] },
+  { group: '我的收藏', items: [] }
+];
+
+const state = {
+  current: 'c1', filter: 'all', adv: null, acct: 'all',
+  contrast: false, revealed: {}, sel: null, sideTab: 'profile', sideExpanded: false,
+  quote: null, pv: { state: 'empty', src: '', text: '', edited: false }
+};
+
+/* =========================== 工具函数 =========================== */
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 1900);
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+}
+
+/* 呈现只看语言，不再用方向猜（§三 A） */
+const isOurs = m => m.body.lang === OUR_LANG;
+function altLabel(m) { return m.direction === 'in' ? '原文' : '实际发出'; }
+
+function followInfo(c) {
+  if (c.pendingH == null) return { text: '已回复', cls: 'done' };
+  const h = c.pendingH;
+  const txt = h < 1 ? Math.round(h * 60) + 'm' : (h % 1 === 0 ? h : h.toFixed(1)) + 'h';
+  return { text: '待跟进 · ' + txt, cls: h > FOLLOW_THRESHOLD_H ? 'urgent' : '' };
+}
+
+function acctInfo(id) { return accounts.find(a => a.id === id) || accounts[0]; }
+function acctDot(status) { return '<span class="acct-dot s-' + status + '"></span>'; }
+
+/* =========================== 会话列表 =========================== */
+function visibleConvs() {
+  let list = convs.slice();
+  if (state.acct !== 'all') list = list.filter(c => c.account === state.acct);
+  if (state.filter === 'unread') list = list.filter(c => c.unread > 0);
+  if (state.filter === 'follow') list = list.filter(c => c.pendingH != null);
+  if (state.filter === 'group') list = list.filter(c => c.type === 'group');
+  if (state.adv) list = list.filter(c => String(c[state.adv.field]) === state.adv.value);
+  return list;
+}
+
+const ADV_FIELDS = [
+  { field: 'stage',   title: '意向阶段', values: ['首询', '询价中', '已报价', '老客户'] },
+  { field: 'country', title: '国家',     values: ['尼日利亚', '加纳', '坦桑尼亚'] },
+  { field: 'tags',    title: '标签',     values: ['重卡 · HOWO', '重卡 · SHACMAN', '重卡', '配件', '群聊 · 采购'] }
+];
+
+function renderAcct() {
+  document.getElementById('acct').innerHTML = accounts.map(a =>
+    '<span class="acct-item' + (state.acct === a.id ? ' on' : '') + '" data-acct="' + a.id + '" title="' + esc(a.label) + '">' +
+    (a.id === 'all' ? '' : acctDot(a.status)) + a.name + '</span>').join('');
+}
+
+function renderFilters() {
+  const base = [
+    { k: 'all',    t: '全部' },
+    { k: 'unread', t: '未读' },
+    { k: 'follow', t: '待跟进' },      /* ← 替代 v2 那个失效的窗口徽章 */
+    { k: 'group',  t: '群组' }          /* ← 非官方路线下恢复 */
+  ];
+  let html = base.map(b => '<span class="chip' + (state.filter === b.k && !state.adv ? ' on' : '') +
+    '" data-filter="' + b.k + '">' + b.t + '</span>').join('');
+  if (state.adv) {
+    const f = ADV_FIELDS.find(x => x.field === state.adv.field);
+    html += '<span class="chip adv" data-clear="1">' + f.title + '：' + esc(state.adv.value) + '<span class="x">×</span></span>';
+  }
+  html += '<span class="chip more" id="advBtn">筛选 ▾</span>';
+  document.getElementById('filters').innerHTML = html;
+
+  document.querySelectorAll('#filters .chip[data-filter]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.filter = el.dataset.filter; state.adv = null;
+      renderFilters(); renderList();
+    });
+  });
+  const clear = document.querySelector('#filters .chip[data-clear]');
+  if (clear) clear.addEventListener('click', () => { state.adv = null; renderFilters(); renderList(); });
+  document.getElementById('advBtn').addEventListener('click', openAdvPop);
+}
+
+function openAdvPop() {
+  const existing = document.getElementById('advPop');
+  if (existing) { existing.remove(); return; }
+  const pop = document.createElement('div');
+  pop.className = 'pop'; pop.id = 'advPop';
+  pop.style.bottom = 'auto'; pop.style.top = '96px'; pop.style.left = '14px'; pop.style.width = '236px';
+  pop.innerHTML = ADV_FIELDS.map(f =>
+    '<div class="pop-group">' + f.title + '</div>' +
+    f.values.map(v => '<div class="pop-item" data-field="' + f.field + '" data-value="' + esc(v) + '">' + esc(v) + '</div>').join('')
+  ).join('') + '<div class="pop-group">纪律：常驻只放最高频 3 个，其余收进这里</div>';
+  document.body.appendChild(pop);
+  pop.querySelectorAll('.pop-item').forEach(el => el.addEventListener('click', () => {
+    state.adv = { field: el.dataset.field, value: el.dataset.value };
+    state.filter = 'all';
+    pop.remove(); renderFilters(); renderList();
+  }));
+  setTimeout(() => document.addEventListener('click', function close(e) {
+    if (!pop.contains(e.target) && e.target.id !== 'advBtn') { pop.remove(); document.removeEventListener('click', close); }
+  }), 0);
+}
+
+function renderList() {
+  const box = document.getElementById('list');
+  const items = visibleConvs();
+  if (!items.length) { box.innerHTML = '<div class="empty">没有符合条件的会话</div>'; return; }
+  box.innerHTML = items.map(c => {
+    const f = followInfo(c);
+    const bcls = f.cls === 'done' ? 'badge done' : 'badge follow' + (f.cls ? ' ' + f.cls : '');
+    const un = c.unread > 0 ? '<span class="unread">' + c.unread + '</span>' : '';
+    const grp = c.type === 'group' ? '<span class="grp-mark">群组 · ' + c.members + '人</span>' : '';
+    return '<div class="conv' + (c.id === state.current ? ' on' : '') + '" data-id="' + c.id + '">' +
+      '<div class="conv-top"><span class="conv-name">' + esc(c.name) + '</span>' +
+      '<span class="conv-time">' + esc(c.time) + ' ' + un + '</span></div>' +
+      '<div class="conv-meta"><span class="conv-country">' + esc(c.country) + ' · ' + esc(c.stage) + '</span>' +
+      '<span class="' + bcls + '">' + f.text + '</span></div>' +
+      '<div class="conv-preview">' + grp + ' ' + esc(c.preview) + '</div>' +
+      '</div>';
+  }).join('');
+
+  box.querySelectorAll('.conv').forEach(el => {
+    el.addEventListener('click', () => {
+      state.current = el.dataset.id;
+      state.revealed = {}; state.sel = null; state.quote = null;
+      renderList(); renderHead(); renderChat(); renderSide(); resetPreview();
+      resolvePending(el.dataset.id);
+    });
+  });
+}
+
+/* =========================== 对话区 =========================== */
+function renderChat() {
+  const c = convs.find(x => x.id === state.current);
+  const list = messages[c.id] || [];
+  const body = document.getElementById('body');
+  /* 同一会话内重渲染（点消息、展开副行）保留滚动位置，不跳到底部 */
+  const keep = body.dataset.conv === state.current ? body.scrollTop : null;
+  let html = '';
+  if (c.type === 'group') {
+    html += '<div class="group-head">群聊 · ' + esc(c.name) + ' · ' + c.members + ' 名成员' +
+      '<span class="lnk" data-reserved="成员列表">成员列表</span></div>';
+  }
+  if (!list.length) html += '<div class="empty">还没有消息</div>';
+  html += list.map(m => renderMsg(m, c)).join('');
+  body.innerHTML = html;
+  body.dataset.conv = state.current;
+  bindChat(body);
+  body.scrollTop = keep == null ? body.scrollHeight : keep;
+}
+
+function renderMsg(m, c) {
+  const tl = m.translation;
+  const st = tl ? tl.state : 'none';
+  const key = c.id + '-' + m.id;
+  let bubbleText, bubbleCls = '', altHtml = '', note = '';
+
+  if (st === 'pending') {
+    bubbleText = m.body.text;                      /* 先显示原文 */
+    bubbleCls = ' pending';
+    note = '翻译中…';
+  } else if (st === 'failed') {
+    bubbleText = m.body.text;                      /* 消息绝不丢 */
+    bubbleCls = ' failed';
+    note = '翻译失败';
+  } else if (st === 'skipped') {
+    bubbleText = isOurs(m) ? m.body.text : (tl.text || m.body.text);
+    note = '同语种 · 未翻译';
+  } else if (st === 'done') {
+    bubbleText = isOurs(m) ? m.body.text : tl.text;
+  } else {
+    bubbleText = m.body.text;
+  }
+
+  /* 副行：语言与主气泡不同的那一侧（不再依赖方向） */
+  if (st === 'done') {
+    const altText = isOurs(m) ? (tl ? tl.text : '') : m.body.text;
+    const label = altLabel(m);
+    const shown = state.contrast || state.revealed[key];
+    altHtml = '<div class="msg-alt">' + (shown
+      ? '<span class="label">' + label + '：</span>' + esc(altText) +
+        (state.contrast ? '' : ' <span class="lnk" data-key="' + key + '">收起</span>')
+      : '<span class="lnk" data-key="' + key + '">查看' + label + '</span>') + '</div>';
+  } else if (note) {
+    altHtml = '<div class="msg-alt">' + esc(note) +
+      (st === 'failed' ? ' · <span class="retry" data-retry="' + key + '">重试</span>' : '') + '</div>';
+  }
+
+  /* 出站发送状态 + origin 标记（§三 A / F） */
+  let foot = '';
+  if (m.direction === 'out') {
+    const d = deliveryMark(m.delivery);
+    foot = '<div class="msg-foot">' +
+      (m.origin === 'phone' ? '<span class="phone-mark">手机端 · 未经翻译</span>' : '') +
+      '<span class="deliv ' + m.delivery + '">' + d + '</span></div>';
+  } else if (m.origin === 'phone') {
+    foot = '<div class="msg-foot"><span class="phone-mark">手机端 · 未经翻译</span></div>';
+  }
+
+  const bar = state.sel === key ? renderBar(m, key) : '';
+  return '<div class="msg ' + m.direction + (state.sel === key ? ' sel' : '') + '" data-key="' + key + '">' +
+    bar +
+    '<div class="bubble ' + bubbleCls.trim() + '" data-bubble="' + key + '">' + esc(bubbleText) + '</div>' +
+    altHtml + foot + '</div>';
+}
+
+function deliveryMark(d) {
+  return { sending: '发送中…', sent: '✓ 已发送', delivered: '✓✓ 已送达', read: '✓✓ 已读', failed: '! 发送失败' }[d] || '';
+}
+
+/* 消息悬浮操作条（§三 B） */
+function renderBar(m, key) {
+  const common = [
+    ['copy', '复制'], ['retrans', '重译'], ['quote', '引用回复'],
+    ['forward', '转发到右栏'], ['star', '收藏为话术']
+  ];
+  const out = m.direction === 'out' ? [['revoke', '撤回']] : [];
+  return '<div class="msg-bar">' + common.concat(out).map(([act, label]) =>
+    '<span class="bar-btn' + (act === 'revoke' ? ' warn' : '') + '" data-act="' + act + '" data-key="' + key + '">' + label + '</span>'
+  ).join('') + '</div>';
+}
+
+function bindChat(body) {
+  body.querySelectorAll('[data-bubble]').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.dataset.bubble;
+      state.sel = state.sel === k ? null : k;
+      renderChat();
+    });
+  });
+  body.querySelectorAll('.msg-alt .lnk').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const k = el.dataset.key;
+      state.revealed[k] = !state.revealed[k];
+      renderChat();
+    });
+  });
+  body.querySelectorAll('[data-retry]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const [, mid] = el.dataset.retry.split('-');
+      retranslate(state.current, mid);
+    });
+  });
+  body.querySelectorAll('.bar-btn').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); barAction(el.dataset.act, el.dataset.key); });
+  });
+  body.querySelectorAll('.group-head .lnk').forEach(el => {
+    el.addEventListener('click', () => toast('成员列表：尚未开放，仅为预留入口'));
+  });
+}
+
+function findMsg(key) {
+  const [cid, mid] = key.split('-');
+  return ((messages[cid] || []).find(m => m.id === mid) || null);
+}
+
+function barAction(act, key) {
+  const m = findMsg(key);
+  if (!m) return;
+  if (act === 'copy') {
+    const text = (m.translation && m.translation.state === 'done' && !isOurs(m)) ? m.translation.text : m.body.text;
+    try { navigator.clipboard && navigator.clipboard.writeText(text); } catch (_) {}
+    toast('已复制文本');
+  } else if (act === 'retrans') {
+    const [cid, mid] = key.split('-');
+    retranslate(cid, mid);
+  } else if (act === 'quote') {
+    const text = (m.translation && m.translation.state === 'done' && !isOurs(m)) ? m.translation.text : m.body.text;
+    state.quote = { from: m.direction === 'in' ? '客户' : '我方', text };
+    state.sel = null;
+    renderChat(); renderQuote();
+    toast('已引用，接下来插入的是草稿');
+  } else if (act === 'forward') {
+    state.sideTab = 'cost'; renderSide();
+    document.getElementById('side').classList.add('expanded');
+    state.sideExpanded = true; syncSideToggle();
+    toast('已转发到右栏「成本精算」（预留）');
+  } else if (act === 'star') {
+    const text = (m.translation && m.translation.state === 'done' && !isOurs(m)) ? m.translation.text : m.body.text;
+    const mine = scripts.find(s => s.group === '我的收藏');
+    if (!mine.items.includes(text)) mine.items.push(text);
+    toast('已收藏为话术（可在「话术」里插入）');
+  } else if (act === 'revoke') {
+    toast('撤回（delete for everyone）：非官方路线下可行性待实测，先留位');
+  }
+}
+
+/* 重译 / 失败重试：pending -> done，演示异步翻译状态机 */
+function retranslate(cid, mid) {
+  const m = (messages[cid] || []).find(x => x.id === mid);
+  if (!m) return;
+  m.translation.state = 'pending';
+  if (cid === state.current) renderChat();
+  setTimeout(() => {
+    m.translation.state = 'done';
+    if (!m.translation.text) m.translation.text = m._seed || '（演示：重译结果）';
+    if (cid === state.current) renderChat();
+  }, 900);
+}
+
+/* 进会话时让 pending 的译文后补（§三 A 的"先显示原文，译文后补"） */
+function resolvePending(cid) {
+  const list = messages[cid] || [];
+  const pend = list.filter(m => m.translation && m.translation.state === 'pending');
+  if (!pend.length) return;
+  pend.forEach(m => { m._seed = m._seed || '请把你们的价目表发给我。'; });
+  setTimeout(() => {
+    pend.forEach(m => { m.translation.state = 'done'; m.translation.text = m._seed; });
+    if (cid === state.current) renderChat();
+  }, 1400);
+}
+
+function renderHead() {
+  const c = convs.find(x => x.id === state.current);
+  document.getElementById('wName').textContent = c.name;
+  document.getElementById('wSub').textContent = (c.type === 'group'
+    ? c.country + ' · ' + c.stage + ' · 群聊 ' + c.members + ' 人'
+    : c.country + ' · ' + c.city + ' · ' + c.stage);
+
+  /* 三处「24 小时窗口」全部换成「待跟进」（§三 F）——这里是第二、三处 */
+  const f = followInfo(c);
+  const el = document.getElementById('wFollow');
+  el.textContent = f.text;
+  el.className = 'follow' + (f.cls === 'done' ? ' done' : f.cls === 'urgent' ? ' urgent' : '');
+
+  const a = acctInfo(c.account);
+  document.getElementById('wAcct').innerHTML = acctDot(a.status) + esc(a.name) + ' · ' + esc(a.label);
+}
+
+/* =========================== 右栏 =========================== */
+function renderSide() {
+  const c = convs.find(x => x.id === state.current);
+  document.querySelectorAll('.side-tab').forEach(el => el.classList.toggle('on', el.dataset.stab === state.sideTab));
+  const box = document.getElementById('sideBody');
+  if (state.sideTab === 'profile') {
+    box.innerHTML =
+      '<div class="pane">' +
+        row('客户 / 公司', esc(c.name)) +
+        row('国家 / 城市', esc(c.country + ' · ' + c.city)) +
+        row('意向阶段', esc(c.stage)) +
+        row('所属账号', esc(accountName(c.account))) +
+        row('首次联系', esc(c.first)) +
+        row('标签', esc(c.tags)) +
+      '</div>' +
+      '<p class="pane-title">结构化字段（业务模块的输入）</p>' +
+      '<div class="pane">' +
+        row('目的国', esc(c.country)) +
+        row('车型 / 品牌', '<span class="v muted">待从会话中抽取</span>') +
+        row('车龄 / 排放', '<span class="v muted">待抽取</span>') +
+        row('预算', '<span class="v muted">待抽取</span>') +
+      '</div>' +
+      '<div class="notice blue">右栏与对话区<b>不再互斥</b>：边说边看客户档案。需要看大图时点右上「展开」变成覆盖层。</div>' +
+      '<div class="notice">这四个字段是「业务 → 成本精算」的输入，今天先把位置留出来。</div>';
+  } else {
+    box.innerHTML = '<div class="empty">成本精算尚未开放</div>' +
+      '<div class="notice">预留入口：上线后按「目的国 + 车型 + 车龄」计算落地价（关税 / VAT / 认证 / 海运 / 清关），' +
+      '并把结果一键插入对话。国家规则做成配置表，加国家等于加数据。</div>';
+  }
+}
+
+function row(k, v) { return '<div class="field"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+
+function syncSideToggle() {
+  document.getElementById('sideToggle').textContent = state.sideExpanded ? '收起' : '展开';
+}
+
+/* =========================== 发送前确认（§三 C） =========================== */
+function resetPreview() {
+  state.pv = { state: 'empty', src: '', text: '', edited: false };
+  paintPreview();
+}
+
+function guessLang(text) { return /[\u4e00-\u9fff]/.test(text) ? 'zh-CN' : 'en'; }
+
+function paintPreview() {
+  const pv = state.pv;
+  const body = document.getElementById('pvBody');
+  const st = document.getElementById('pvState');
+  const send = document.getElementById('send');
+
+  if (pv.state === 'empty') {
+    body.className = 'preview-body muted'; body.textContent = '输入中文，这里实时显示将发出的译文';
+    body.contentEditable = 'false'; st.textContent = ''; st.className = 'pv-state';
+    renderTerms(''); send.disabled = true; send.textContent = '发送'; return;
+  }
+  if (pv.state === 'pending') {
+    body.className = 'preview-body muted'; body.textContent = '翻译中…（译文就绪前不可发送）';
+    body.contentEditable = 'false'; st.textContent = '· 翻译中'; st.className = 'pv-state busy';
+    renderTerms(pv.src); send.disabled = true; send.textContent = '翻译中…'; return;
+  }
+  if (pv.state === 'skipped') {
+    body.className = 'preview-body'; body.textContent = pv.text;
+    body.contentEditable = 'false'; st.textContent = '· 同语种，未翻译'; st.className = 'pv-state ok';
+    renderTerms(pv.src); send.disabled = false; send.textContent = '发送'; return;
+  }
+  /* done：可编辑 */
+  body.className = 'preview-body'; body.textContent = pv.text;
+  body.contentEditable = 'true';
+  st.textContent = pv.edited ? '· 已手工修改，将以修改版为准' : '· 可就地修改';
+  st.className = 'pv-state ' + (pv.edited ? 'busy' : 'ok');
+  renderTerms(pv.src);
+  send.disabled = false; send.textContent = '发送';
+}
+
+/* 术语命中 → 可点标记（§三 C）。检测的是**原文**：术语表在翻译前后各插一道，
+   译文里术语已被换成英文，拿译文去匹配中文术语永远命中不到 */
+function renderTerms(src) {
+  const box = document.getElementById('terms');
+  const text = src || '';
+  const hits = Object.keys(glossary).filter(t => text.includes(t));
+  box.innerHTML = hits.map(t =>
+    '<span class="term" data-term="' + esc(t) + '">术语 · ' + esc(t) + ' → ' + esc(glossary[t].en) + '</span>').join('');
+  box.querySelectorAll('.term').forEach(el => el.addEventListener('click', () => {
+    const g = glossary[el.dataset.term];
+    toast(el.dataset.term + ' → ' + g.en + '（' + g.note + '）');
+  }));
+}
+
+function onInput() {
+  const text = document.getElementById('input').value.trim();
+  if (!text) { resetPreview(); return; }
+  const srcLang = guessLang(text);
+  if (srcLang === 'en') {                 /* 同语种跳过（L2 的第 4 项） */
+    state.pv = { state: 'skipped', src: text, text, edited: false };
+    paintPreview(); return;
+  }
+  state.pv = { state: 'pending', src: text, text: '', edited: false };
+  paintPreview();
+  clearTimeout(onInput._t);
+  onInput._t = setTimeout(() => {
+    if (state.pv.src !== text || state.pv.state !== 'pending') return;
+    state.pv = { state: 'done', src: text, text: mockTranslate(text), edited: false };
+    paintPreview();
+  }, 650);
+}
+
+function mockTranslate(zh) {
+  const t = zh.trim();
+  if (dict[t]) return dict[t];
+  /* 演示翻译：先把术语表命中项换成英文，再走标点替换 —— 让「术语命中」看得见 */
+  let out = t;
+  for (const [k, g] of Object.entries(glossary)) out = out.split(k).join(' ' + g.en + ' ');
+  out = out.replace(/[。，？！、：]/g, m => ({ '。': '. ', '，': ', ', '？': '? ', '！': '! ', '、': ', ', '：': ': ' }[m] || ''));
+  return '[demo] ' + out.trim();
+}
 
 const dict = {
   '你好': 'Hello.',
@@ -213,186 +861,125 @@ const dict = {
   '我们支持 FOB 和 CIF': 'We support both FOB and CIF.'
 };
 
-const state = { current: 'c1', tab: 'chat', filter: 'all', contrast: false, revealed: {} };
-
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg + '：尚未开放，仅为预留入口';
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), 1800);
+function renderQuote() {
+  const q = document.getElementById('quote');
+  if (!state.quote) { q.hidden = true; q.innerHTML = ''; return; }
+  q.hidden = false;
+  q.innerHTML = '<span>' + esc(state.quote.from) + '：' + esc(state.quote.text) + '</span><span class="x" id="qClose">×</span>';
+  document.getElementById('qClose').addEventListener('click', () => { state.quote = null; renderQuote(); });
 }
 
-function visibleConvs() {
-  if (state.filter === 'unread') return convs.filter(c => c.unread > 0);
-  if (state.filter === 'closed') return convs.filter(c => c.winH === 0);
-  return convs;
-}
-
-function renderList() {
-  const box = document.getElementById('list');
-  const items = visibleConvs();
-  if (!items.length) {
-    box.innerHTML = '<div class="empty">没有符合条件的会话</div>';
-    return;
-  }
-  box.innerHTML = items.map(c => {
-    const win = c.winH > 0
-      ? '<span class="badge open">窗口内 ' + c.winH + 'h</span>'
-      : '<span class="badge closed">窗口已关</span>';
-    const un = c.unread > 0 ? '<span class="unread">' + c.unread + '</span>' : '';
-    return '<div class="conv' + (c.id === state.current ? ' on' : '') + '" data-id="' + c.id + '">' +
-      '<div class="conv-top"><span class="conv-name">' + c.name + '</span>' +
-      '<span class="conv-time">' + c.time + ' ' + un + '</span></div>' +
-      '<div class="conv-meta"><span class="conv-country">' + c.country + ' · ' + c.stage + '</span>' + win + '</div>' +
-      '<div class="conv-preview">' + c.preview + '</div>' +
-      '</div>';
-  }).join('');
-  box.querySelectorAll('.conv').forEach(el => {
-    el.addEventListener('click', () => {
-      state.current = el.dataset.id;
-      state.revealed = {};
-      renderList();
-      renderWork();
-    });
-  });
-}
-
-function altLabel(m) { return m.dir === 'in' ? '原文' : '译文'; }
-
-function renderChat(c) {
-  const list = messages[c.id] || [];
-  if (!list.length) return '<div class="empty">还没有消息</div>';
-  return list.map((m, i) => {
-    const key = c.id + '-' + i;
-    const shown = state.contrast || state.revealed[key];
-    const alt = altLabel(m);
-    let altHtml;
-    if (shown) {
-      altHtml = '<span class="label">' + alt + '：</span>' + m.en +
-        (state.contrast ? '' : ' <span class="lnk" data-key="' + key + '">收起</span>');
-    } else {
-      altHtml = '<span class="lnk" data-key="' + key + '">查看' + alt + '</span>';
-    }
-    return '<div class="msg ' + m.dir + '"><div class="bubble">' + m.zh + '</div>' +
-      '<div class="msg-alt">' + altHtml + '</div></div>';
-  }).join('');
-}
-
-function renderProfile(c) {
-  return '<div class="pane">' +
-    row('客户 / 公司', c.name) +
-    row('国家 / 城市', c.country + ' · ' + c.city) +
-    row('意向阶段', c.stage) +
-    row('所属账号', c.account) +
-    row('首次联系', c.first) +
-    row('标签', c.tags) +
-    '</div>' +
-    '<p class="pane-title">结构化字段（业务模块的输入）</p>' +
-    '<div class="pane">' +
-    row('目的国', c.country) +
-    row('车型 / 品牌', '<span class="v muted">待从会话中抽取</span>', true) +
-    row('车龄 / 排放', '<span class="v muted">待抽取</span>', true) +
-    row('预算', '<span class="v muted">待抽取</span>', true) +
-    '</div>' +
-    '<div class="notice">这四个字段是「业务 → 成本精算」的输入。今天先把位置留出来，等成本精算模块上线时直接消费。</div>';
-}
-
-function row(k, v, muted) {
-  return '<div class="field"><span class="k">' + k + '</span><span class="v' + (muted ? '' : '') + '">' + v + '</span></div>';
-}
-
-function renderCost() {
-  return '<div class="empty">成本精算尚未开放</div>' +
-    '<div class="notice">预留入口：等本模块上线后，这里会按「目的国 + 车型 + 车龄」计算落地价（关税 / VAT / 认证 / 海运 / 清关），' +
-    '并把结果一键插入右侧对话。国家规则将做成配置表，加国家等于加数据。</div>';
-}
-
-function renderWork() {
-  const c = convs.find(x => x.id === state.current);
-  document.getElementById('wName').textContent = c.name;
-  document.getElementById('wSub').textContent = c.country + ' · ' + c.city + ' · ' + c.stage;
-  const winEl = document.getElementById('wWin');
-  if (c.winH > 0) {
-    winEl.textContent = '窗口剩 ' + c.winH + 'h · 可自由回复';
-    winEl.className = 'win open';
-  } else {
-    winEl.textContent = '窗口已关 · 需模板消息触达';
-    winEl.className = 'win closed';
-  }
-
-  let html = '';
-  if (state.tab === 'chat') html = renderChat(c);
-  else if (state.tab === 'profile') html = renderProfile(c);
-  else html = renderCost();
-  document.getElementById('body').innerHTML = html;
-
-  document.getElementById('quick').style.display = state.tab === 'chat' ? 'flex' : 'none';
-  document.querySelector('.composer').style.display = state.tab === 'chat' ? 'flex' : 'none';
-  document.querySelector('.hint').style.display = state.tab === 'chat' ? 'block' : 'none';
-
-  document.querySelectorAll('.msg-alt .lnk').forEach(el => {
-    el.addEventListener('click', () => {
-      const k = el.dataset.key;
-      state.revealed[k] = !state.revealed[k];
-      renderWork();
-    });
-  });
-}
-
-function translate(zh) {
-  const t = zh.trim();
-  if (dict[t]) return dict[t];
-  return '（演示：此处显示自动翻译结果）';
+/* 话术弹层：插入的是草稿，不是发送（§三 D 纪律 1） */
+function renderScriptPop() {
+  const pop = document.getElementById('scriptPop');
+  pop.innerHTML = scripts.map(s =>
+    '<div class="pop-group">' + esc(s.group) + '</div>' +
+    (s.items.length
+      ? s.items.map((t, i) => '<div class="pop-item" data-si="' + scripts.indexOf(s) + '" data-i="' + i + '">' + esc(t) + '</div>').join('')
+      : '<div class="pop-item" style="color:#98a1b0">（在消息操作条里点「收藏为话术」）</div>')
+  ).join('');
+  pop.querySelectorAll('.pop-item[data-si]').forEach(el => el.addEventListener('click', () => {
+    const s = scripts[+el.dataset.si], text = s.items[+el.dataset.i];
+    const input = document.getElementById('input');
+    input.value = state.quote ? (state.quote.text + '\n' + text) : text;
+    pop.classList.add('hidden');
+    state.quote = null; renderQuote();
+    input.focus(); onInput();
+    toast('已插入草稿 —— 需确认译文后才能发送');
+  }));
 }
 
 function send() {
   const input = document.getElementById('input');
-  const text = input.value.trim();
-  if (!text) return;
-  if (!messages[state.current]) messages[state.current] = [];
-  messages[state.current].push({ dir: 'out', zh: text, en: translate(text), time: '刚刚' });
-  input.value = '';
-  renderWork();
-  const body = document.getElementById('body');
-  body.scrollTop = body.scrollHeight;
+  const typed = input.value.trim();
+  if (!typed) return;
+  const pv = state.pv;
+  if (pv.state !== 'done' && pv.state !== 'skipped') return;
+
+  const finalEn = pv.state === 'skipped' ? typed : document.getElementById('pvBody').textContent.trim();
+  const cid = state.current;
+  if (!messages[cid]) messages[cid] = [];
+  const id = 'n' + Date.now();
+  const msg = {
+    id, direction: 'out', origin: 'system',
+    body: { text: finalEn, lang: 'en' },
+    translation: pv.state === 'skipped'
+      ? { text: '', lang: OUR_LANG, state: 'skipped' }
+      : { text: typed, lang: OUR_LANG, state: 'done' },
+    delivery: 'sending', sentAt: '刚刚'
+  };
+  messages[cid].push(msg);
+
+  input.value = ''; state.quote = null; renderQuote(); resetPreview();
+
+  /* 发送状态机：sending -> sent -> delivered -> read */
+  const step = (s, delay) => setTimeout(() => {
+    msg.delivery = s;
+    if (state.current === cid) renderChat();
+  }, delay);
+  step('sent', 420); step('delivered', 1200); step('read', 2600);
+
+  renderChat();
+  const c = convs.find(x => x.id === cid);
+  c.pendingH = null; c.preview = finalEn; c.time = '刚刚';
+  renderHead(); renderList();
 }
 
-document.querySelectorAll('.chip').forEach(el => {
-  el.addEventListener('click', () => {
-    document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
-    el.classList.add('on');
-    state.filter = el.dataset.filter;
-    renderList();
-  });
+/* =========================== 事件绑定 =========================== */
+document.getElementById('input').addEventListener('input', onInput);
+document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+document.getElementById('send').addEventListener('click', send);
+
+document.getElementById('pvBody').addEventListener('input', () => {
+  if (state.pv.state !== 'done') return;
+  state.pv.edited = true;
+  const st = document.getElementById('pvState');
+  st.textContent = '· 已手工修改，将以修改版为准';
+  st.className = 'pv-state busy';
 });
 
-document.querySelectorAll('.tab').forEach(el => {
-  el.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
-    el.classList.add('on');
-    state.tab = el.dataset.tab;
-    renderWork();
-  });
+document.querySelectorAll('.side-tab').forEach(el => {
+  el.addEventListener('click', () => { state.sideTab = el.dataset.stab; renderSide(); });
+});
+document.getElementById('sideToggle').addEventListener('click', () => {
+  state.sideExpanded = !state.sideExpanded;
+  document.getElementById('side').classList.toggle('expanded', state.sideExpanded);
+  syncSideToggle();
 });
 
-document.getElementById('contrast').addEventListener('click', () => {
-  state.contrast = !state.contrast;
-  const el = document.getElementById('contrast');
-  el.textContent = '对照：' + (state.contrast ? '开' : '关');
-  el.className = 'contrast' + (state.contrast ? '' : ' off');
-  renderWork();
+document.getElementById('qScript').addEventListener('click', e => {
+  e.stopPropagation();
+  const pop = document.getElementById('scriptPop');
+  if (pop.classList.contains('hidden')) { renderScriptPop(); pop.classList.remove('hidden'); }
+  else pop.classList.add('hidden');
+});
+document.addEventListener('click', e => {
+  const pop = document.getElementById('scriptPop');
+  if (!pop.classList.contains('hidden') && !pop.contains(e.target) && e.target.id !== 'qScript') pop.classList.add('hidden');
 });
 
 document.querySelectorAll('[data-reserved]').forEach(el => {
-  el.addEventListener('click', () => toast(el.dataset.reserved));
+  el.addEventListener('click', () => toast(el.dataset.reserved + '：尚未开放，仅为预留入口'));
 });
 
-document.getElementById('send').addEventListener('click', send);
-document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+document.getElementById('acct').addEventListener('click', e => {
+  const el = e.target.closest('[data-acct]');
+  if (!el) return;
+  state.acct = el.dataset.acct;
+  renderAcct(); renderList();
+});
 
+/* =========================== 启动 =========================== */
+renderAcct();
+renderFilters();
 renderList();
-renderWork();
+renderHead();
+renderChat();
+renderSide();
+renderQuote();
+resetPreview();
+syncSideToggle();
+resolvePending(state.current);
 </script>
 </body>
 </html>
