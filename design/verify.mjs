@@ -77,6 +77,28 @@ check('REF-TUOYI.md: 记录 preload/page 两层 RPC 协议', ref.includes("sourc
 check('REF-TUOYI.md: 指出不应照抄的不安全做法', ref.includes('allowRunningInsecureContent=true') && ref.includes('不应照抄'));
 check('REF-TUOYI.md: 不写入任何凭据或密钥值', !/(password|token|secret)\s*[:=]\s*['"][^'"]+['"]/i.test(ref));
 
+// ---- CONVERSATION-MODE.md（客户对话模式 v3 设计） ----
+const conv = readFileSync(join(root, 'CONVERSATION-MODE.md'), 'utf8');
+const convChapters = ['## 一、', '## 二、', '## 三、', '## 四、', '## 五、', '## 六、', '## 七、', '## 八、', '## 九、'];
+check('CONV.md: 九个章节齐全', convChapters.every(s => conv.includes(s)));
+check('CONV.md: 逐条列出重做原因且带证据', conv.includes('现状证据') && conv.includes('## 一、为什么要重做'));
+check('CONV.md: 修正 24 小时窗口这一失效指标', conv.includes('24 小时窗口') && conv.includes('官方 Cloud API 的约束') && conv.includes('误导信息'));
+check('CONV.md: 记录账号维度缺失并给出调和方案', conv.includes('账号切换器') && conv.includes('不推翻该决定'));
+check('CONV.md: 恢复群组并说明理由', conv.includes('群组') && conv.includes('路线变更后恢复'));
+check('CONV.md: 对 REF-TUOYI.md 的快捷插入栏结论做勘误', conv.includes('勘误') && conv.includes('不是抄来的'));
+check('CONV.md: origin=phone 必须在界面可见', conv.includes('origin=phone') && conv.includes('未经翻译'));
+check('CONV.md: 插入不等于发送（不许绕过译文确认）', conv.includes('插入 ≠ 发送'));
+check('CONV.md: 翻译开关章节标注为待决策', conv.includes('待决策') && conv.includes('## 五、翻译开关粒度'));
+check('CONV.md: 翻译开关给出递进阶梯与推荐理由', conv.includes('L0') && conv.includes('L4') && conv.includes('我的推荐'));
+check('CONV.md: 不抄清单存在且含关键项', conv.includes('## 七、不抄清单') && conv.includes('allowRunningInsecureContent=true') && conv.includes('声音克隆'));
+check('CONV.md: 明确本轮不改原型与代码', conv.includes('只出设计文档') && conv.includes('不改 `prototype.html`'));
+
+const convTs = (conv.match(/```ts\n([\s\S]*?)```/g) || []).join('\n');
+check('CONV.md: 给出数据结构改动代码块', convTs.includes('interface ChatMessage') && convTs.includes('CustomerPrefs') && convTs.includes('interface ChatSession'));
+check('CONV.md: 数据结构代码块花括号配对', convTs.length > 0 && [...convTs].reduce((d, ch) => (ch === '{' ? d + 1 : ch === '}' ? d - 1 : d), 0) === 0, '括号不平衡');
+check('CONV.md: 标明增量字段而非新发明', conv.includes('真正的增量只有'));
+check('CONV.md: 不写入任何凭据或密钥值', !/(password|token|secret)\s*[:=]\s*['"][^'"]+['"]/i.test(conv));
+
 console.log('');
 if (failed) {
   console.log(failed + ' 项未通过');
