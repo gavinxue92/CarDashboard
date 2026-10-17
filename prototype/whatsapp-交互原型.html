@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhatsApp 模块 · 页面交互原型 V1.4 定稿</title>
+<style>
+:root{
+  --bg:#FFFFFF; --surface:#F7F8FA; --surface-2:#F1EFE8; --border:#E3E5E9;
+  --text:#1F2329; --text-2:#646A73; --text-3:#9298A0;
+  --primary:#185FA5; --primary-bg:#E6F1FB; --primary-line:#B5D4F4;
+  --green:#0F6E56; --green-bg:#E1F5EE;
+  --amber:#854F0B; --amber-bg:#FAEEDA;
+  --red:#A32D2D; --red-bg:#FCEBEB; --red-line:#F09595;
+  --wa:#128C7E;
+  --vio:#4A3FBD; --vio-bg:#EEECFB;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; display:flex; flex-direction:column; background:var(--surface);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+  color:var(--text); font-size:14px; -webkit-font-smoothing:antialiased;
+}
+.proto-head{
+  display:flex; align-items:center; gap:12px; padding:10px 18px;
+  background:#fff; border-bottom:1px solid var(--border); flex:none; flex-wrap:wrap;
+}
+.proto-title{font-size:14px; font-weight:500}
+.proto-note{font-size:12px; color:var(--text-3)}
+.proto-note b{color:var(--amber); font-weight:500}
+.proto-tabs{
+  display:flex; flex-wrap:wrap; gap:6px; padding:10px 18px;
+  background:#fff; border-bottom:1px solid var(--border); flex:none;
+}
+.tab{
+  padding:5px 12px; border-radius:6px; border:1px solid var(--border);
+  background:#fff; color:var(--text-2); font-size:13px; cursor:pointer;
+  font-family:inherit; transition:.12s;
+}
+.tab:hover{background:var(--surface)}
+.tab.on{background:var(--primary-bg); border-color:var(--primary-line); color:var(--primary); font-weight:500}
+
+.app{
+  flex:1; min-height:0; display:flex; flex-direction:column;
+  margin:0; background:var(--bg);
+}
+.titlebar{
+  height:54px; flex:none; display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; border-bottom:1px solid var(--border); background:#fff;
+}
+.brand{display:flex; align-items:center; gap:9px; font-size:15px; font-weight:500}
+.brand-mark{width:20px; height:20px; border-radius:5px; background:var(--primary)}
+.owner{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2)}
+.avatar{width:26px; height:26px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border)}
+
+.main{flex:1; min-height:0; display:flex}
+.sidebar{
+  width:216px; flex:none; border-right:1px solid var(--border);
+  background:var(--surface); padding:10px 8px; overflow:visible; position:relative;
+}
+.nav-item{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:9px 12px; border-radius:6px; font-size:14px; color:var(--text); margin-bottom:2px;
+}
+.nav-group>.nav-item{color:var(--text); font-weight:500}
+.nav-sub .nav-item{padding-left:12px; font-size:13px; font-weight:400}
+.nav-item.active{background:var(--primary-bg); color:var(--primary); position:relative}
+.nav-item.active::before{
+  content:""; position:absolute; left:0; top:7px; bottom:7px; width:3px;
+  border-radius:2px; background:var(--primary);
+}
+.nav-item.disabled{color:var(--text-3); cursor:not-allowed}
+.soon{
+  font-size:11px; padding:1px 6px; border-radius:4px;
+  background:var(--surface-2); color:var(--text-3); white-space:nowrap;
+}
+.wa-item{cursor:pointer}
+.dot{width:8px; height:8px; border-radius:50%; display:inline-block; flex:none}
+.dot.ok{background:#22A06B}
+.dot.load{background:#F0A020}
+.dot.err{background:#E5484D}
+.wa-left{display:flex; align-items:center; gap:8px; min-width:0}
+.more{
+  opacity:0; cursor:pointer; padding:0 5px; border-radius:4px; color:var(--text-2);
+  font-size:15px; line-height:1; flex:none; transition:.12s;
+}
+.nav-item:hover .more{opacity:1}
+.more:hover{background:rgba(24,95,165,.12); color:var(--primary)}
+.acct{
+  font-size:11px; color:var(--text-3); padding:1px 12px 7px 32px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:default;
+}
+.acct.set{cursor:pointer}
+.acct.set:hover{color:var(--primary)}
+.tip{
+  display:none; position:absolute; left:34px; top:66px; z-index:20;
+  background:var(--text); color:#fff; font-size:11px; padding:5px 9px;
+  border-radius:5px; white-space:nowrap; pointer-events:none;
+}
+.tip.show{display:block}
+.menu{
+  display:none; position:absolute; left:28px; top:88px; z-index:21;
+  background:#fff; border:1px solid var(--border); border-radius:8px;
+  box-shadow:0 6px 24px rgba(31,35,41,.10); padding:5px; min-width:150px;
+}
+.menu.show{display:block}
+.menu button{
+  display:block; width:100%; text-align:left; border:0; background:none;
+  font-family:inherit; font-size:13px; color:var(--text); padding:7px 10px;
+  border-radius:5px; cursor:pointer;
+}
+.menu button:hover{background:var(--surface)}
+.menu button.danger{color:var(--red)}
+.menu button:disabled{color:var(--text-3); cursor:not-allowed}
+
+.content{flex:1; min-width:0; display:flex; flex-direction:column; background:#fff; position:relative}
+.stage{flex:1; min-height:0; position:relative; overflow:auto; background:var(--surface)}
+
+.floatbar{
+  position:absolute; top:0; left:0; right:56px; z-index:4; display:none;
+  align-items:center; gap:8px; padding:9px 16px; font-size:13px;
+  background:var(--amber-bg); color:var(--amber); border-bottom:1px solid #FAC775;
+}
+.floatbar.show{display:flex}
+.floatbar .btn{padding:2px 10px; font-size:12px; margin-left:auto}
+
+.canvas-tag{
+  position:absolute; top:52px; left:14px; z-index:3;
+  font-size:11px; padding:3px 8px; border-radius:4px;
+  background:var(--amber-bg); color:var(--amber); border:1px solid #FAC775;
+}
+
+/* ===== 右侧功能栏（V1.3，我方渲染） ===== */
+.rail{
+  position:absolute; top:0; right:0; bottom:0; width:56px; z-index:3;
+  background:#fff; border-left:1px solid var(--border);
+  display:none; flex-direction:column; align-items:center; padding-top:12px; gap:4px;
+}
+.rail.show{display:flex}
+.rail-item{
+  width:48px; padding:7px 0 6px; border:0; background:none; border-radius:8px;
+  display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
+  font-family:inherit; color:var(--text-2); transition:.12s; position:relative;
+}
+.rail-item .ric{font-size:17px; line-height:1}
+.rail-item .rlb{font-size:10px; line-height:1.2; text-align:center}
+.rail-item:hover{background:var(--vio-bg); color:var(--vio)}
+.rail-item.primary{color:var(--vio); font-weight:500}
+.rail-item.disabled{color:var(--text-3); cursor:not-allowed}
+.rail-item.disabled:hover{background:none; color:var(--text-3)}
+.rail-item .rtip{
+  display:none; position:absolute; right:54px; top:50%; transform:translateY(-50%);
+  background:var(--text); color:#fff; font-size:11px; padding:4px 8px;
+  border-radius:5px; white-space:nowrap; pointer-events:none;
+}
+.rail-item.disabled:hover .rtip{display:block}
+
+.embed{
+  position:absolute; inset:14px; border:1.5px dashed #C9CDD4; border-radius:8px;
+  background:#fff; display:flex; flex-direction:column; overflow:hidden;
+}
+.embed.with-rail{right:70px}
+
+.state-loading{display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:14px}
+.spinner{width:30px; height:30px; border-radius:50%; border:2.5px solid var(--primary-line); border-top-color:var(--primary); animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state-loading .t1{font-size:14px; color:var(--text)}
+.state-loading .t2{font-size:12px; color:var(--text-3)}
+.state-loading .t2.warn{color:var(--amber)}
+
+.qr-wrap{display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:16px; padding:24px}
+.qr-card{background:#fff; border:1px solid var(--border); border-radius:8px; padding:14px}
+.qr-tip{font-size:14px; color:var(--text); text-align:center; max-width:420px; line-height:1.7}
+.qr-steps{font-size:12px; color:var(--text-2); line-height:2; text-align:left; margin-top:2px}
+.qr-steps b{font-weight:500; color:var(--text)}
+
+.chat{display:flex; height:100%}
+.chat-list{width:32%; border-right:1px solid var(--border); background:#fff; padding:12px}
+.chat-main{flex:1; background:var(--surface); padding:14px; display:flex; flex-direction:column; gap:10px}
+.ghost{background:var(--surface-2); border-radius:6px; height:14px}
+.ghost.h20{height:20px}
+.row{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.row .circ{width:34px; height:34px; border-radius:50%; background:var(--surface-2); flex:none}
+.row .stack{flex:1; display:flex; flex-direction:column; gap:6px}
+.bubble{max-width:62%; padding:10px 12px; border-radius:8px; background:#fff; border:1px solid var(--border)}
+.bubble.me{align-self:flex-end; background:var(--green-bg); border-color:#9FE1CB}
+
+.overlay{
+  position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center;
+  background:rgba(31,35,41,.28); padding:24px;
+}
+.overlay .card{
+  width:min(460px,100%); background:#fff; border-radius:10px; border:1px solid var(--border);
+  overflow:hidden;
+}
+.card-head{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); font-weight:500}
+.card-body{padding:18px; font-size:13px; color:var(--text-2); line-height:1.8}
+.card-body strong{color:var(--text); font-weight:500}
+.card-foot{display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1px solid var(--border); background:var(--surface)}
+.x{color:var(--text-3); cursor:pointer; font-size:16px; line-height:1}
+.input{
+  width:100%; font-family:inherit; font-size:13px; padding:9px 11px;
+  border:1px solid var(--border); border-radius:6px; color:var(--text); margin-top:10px;
+}
+.input:focus{outline:none; border-color:var(--primary)}
+
+/* ===== O4 翻译设置弹窗（V1.3 接口预留壳） ===== */
+.set-overlay{
+  position:absolute; inset:0; z-index:8; display:none;
+  align-items:center; justify-content:center; background:rgba(31,35,41,.38); padding:24px;
+}
+.set-overlay.show{display:flex}
+.set-modal{
+  width:min(920px,100%); max-height:100%; background:#fff; border-radius:12px;
+  border:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden;
+  box-shadow:0 12px 40px rgba(31,35,41,.18);
+}
+.set-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:15px 22px; border-bottom:1px solid var(--border); flex:none;
+}
+.set-head .ht{font-size:15px; font-weight:500}
+.set-head .badge{
+  font-size:11px; color:var(--vio); background:var(--vio-bg);
+  border:1px solid #C9C4F0; border-radius:4px; padding:2px 8px; margin-left:10px; font-weight:400;
+}
+.set-body{flex:1; min-height:0; overflow:auto; display:flex; gap:14px; padding:18px 22px; background:#fff}
+.set-col{flex:1; min-width:0; display:flex; flex-direction:column; gap:16px}
+.set-group{border:1px solid var(--border); border-radius:10px; padding:12px 14px}
+.set-group .gt{font-size:12px; font-weight:500; color:var(--text-2); margin-bottom:10px}
+.frm{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0; font-size:13px}
+.frm .fl{color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.frm .fl .q{color:var(--text-3); font-size:11px; margin-left:2px}
+
+.tgl{
+  width:34px; height:19px; border-radius:10px; background:#D5D9DE; position:relative;
+  cursor:pointer; flex:none; transition:.15s; border:0; padding:0;
+}
+.tgl::after{
+  content:""; position:absolute; top:2px; left:2px; width:15px; height:15px;
+  border-radius:50%; background:#fff; transition:.15s; box-shadow:0 1px 2px rgba(0,0,0,.15);
+}
+.tgl.on{background:var(--vio)}
+.tgl.on::after{left:17px}
+.tgl.lock{cursor:default; opacity:.85}
+
+.stepper{display:flex; align-items:center; gap:0; flex:none; border:1px solid var(--border); border-radius:6px; overflow:hidden}
+.stepper b{
+  width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+  background:var(--surface); cursor:pointer; font-weight:400; color:var(--text-2); user-select:none;
+}
+.stepper b:hover{background:var(--surface-2)}
+.stepper em{
+  width:38px; height:24px; display:flex; align-items:center; justify-content:center;
+  font-style:normal; font-size:13px; border-left:1px solid var(--border); border-right:1px solid var(--border);
+}
+.sel{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 9px; min-width:110px;
+  border:1px solid var(--border); border-radius:6px; font-size:12px; color:var(--text);
+  background:#fff; cursor:default; justify-content:space-between;
+}
+.sel i{font-style:normal; color:var(--text-3); font-size:10px}
+.cblk{
+  width:26px; height:22px; border:1px solid var(--border); border-radius:5px;
+  background:#fff; display:inline-flex; align-items:center; justify-content:center;
+  color:var(--text-3); font-size:11px; cursor:default; flex:none;
+}
+
+.set-foot{
+  flex:none; display:flex; align-items:center; gap:8px;
+  padding:12px 22px; border-top:1px solid var(--border); background:var(--surface);
+}
+.set-foot .hint{font-size:11px; color:var(--text-3); margin-right:auto; line-height:1.5}
+.btn{
+  font-family:inherit; font-size:13px; padding:7px 16px; border-radius:6px;
+  border:1px solid var(--border); background:#fff; color:var(--text); cursor:pointer; transition:.12s;
+}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--vio); border-color:var(--vio); color:#fff}
+.btn.primary:hover{opacity:.92}
+.btn.danger{color:var(--red); border-color:var(--red-line)}
+.btn.danger:hover{background:var(--red-bg)}
+
+.toast{
+  position:absolute; right:70px; bottom:16px; z-index:9;
+  padding:10px 14px; border-radius:8px; font-size:13px; background:var(--text); color:#fff;
+}
+
+.scenote{
+  position:absolute; left:14px; bottom:12px; z-index:4; max-width:calc(100% - 28px);
+  font-size:12px; color:var(--text-2); background:rgba(255,255,255,.94);
+  border:1px solid var(--border); border-radius:6px; padding:8px 12px; line-height:1.7;
+}
+.scenote b{color:var(--primary); font-weight:500}
+.scenote.vio b{color:var(--vio)}
+</style>
+</head>
+<body>
+
+<div class="proto-head">
+  <span class="proto-title">WhatsApp 模块 · 页面交互原型 V1.4 定稿</span>
+  <span class="proto-note">V1.4：对齐需求 V1.3 —— 本版<b>无工作台登录层</b>，启动直接进主界面，卸载即清除全部数据；会话分区标识参数化。虚线框内为<b>官方页面渲染区</b>，我方不控制</span>
+</div>
+<div class="proto-tabs" id="tabs"></div>
+
+<div class="app">
+  <div class="titlebar">
+    <div class="brand"><span class="brand-mark"></span>海外获客沟通工作台</div>
+    <div class="owner"><span>销售 · 张三</span><span class="avatar"></span></div>
+  </div>
+
+  <div class="main">
+    <aside class="sidebar" id="sidebar">
+      <div class="nav-group">
+        <div class="nav-item active"><span>沟通</span></div>
+        <div class="nav-sub">
+          <div class="nav-item active wa-item" id="waItem">
+            <span class="wa-left">
+              <i class="dot ok" id="navDot"></i><span>WhatsApp</span>
+            </span>
+            <span class="more" id="moreBtn">⋯</span>
+          </div>
+          <div class="acct" id="acctLine" title="">+86 138****1234 · 张三</div>
+          <div class="nav-item"><span style="padding-left:20px; color:var(--text-2)">Telegram</span></div>
+        </div>
+      </div>
+      <div class="nav-item disabled"><span>获客</span><span class="soon">即将上线</span></div>
+      <div class="nav-item disabled"><span>业务</span><span class="soon">即将上线</span></div>
+      <div class="nav-item disabled"><span>账号</span><span class="soon">即将上线</span></div>
+
+      <div class="tip" id="dotTip">页面运行状态，不代表账号在线</div>
+      <div class="menu" id="moreMenu">
+        <button data-act="reload">重新加载</button>
+        <button data-act="memo">设置账号备注</button>
+        <button data-act="unbind" class="danger">解除绑定</button>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div class="floatbar" id="floatBar">
+        <i class="dot err"></i><span id="floatText">连接异常，正在尝试自动重连…</span>
+        <button class="btn">立即重试</button>
+      </div>
+      <div class="stage" id="stage"></div>
+
+      <div class="rail" id="rail">
+        <button class="rail-item primary" id="railTranslate">
+          <span class="ric">译</span><span class="rlb">翻译设置</span>
+        </button>
+        <button class="rail-item disabled" data-soon="客户信息">
+          <span class="ric">👤</span><span class="rlb">客户信息</span>
+          <span class="rtip">即将上线</span>
+        </button>
+        <button class="rail-item disabled" data-soon="快捷消息">
+          <span class="ric">⚡</span><span class="rlb">快捷消息</span>
+          <span class="rtip">即将上线</span>
+        </button>
+      </div>
+
+      <div class="set-overlay" id="setOverlay">
+        <div class="set-modal">
+          <div class="set-head">
+            <span class="ht">WhatsApp - 编辑账号<span class="badge" id="setBadge">接口预留 · 功能后续版本生效</span></span>
+            <span class="x" id="setClose">✕</span>
+          </div>
+          <div class="set-body">
+            <div class="set-col">
+              <div class="set-group">
+                <div class="gt">基础设置</div>
+                <div class="frm"><span class="fl">账号备注</span><span class="sel" id="fMemo">Gavin <i>▾</i></span></div>
+                <div class="frm"><span class="fl">是否启用</span><button class="tgl" data-cfg="enabled"></button></div>
+                <div class="frm"><span class="fl">账号分组</span><span class="sel">请选择分组 <i>▾</i></span></div>
+                <div class="frm"><span class="fl">顺序</span><span class="stepper" data-cfg="order"><b>−</b><em>1</em><b>+</b></span></div>
+              </div>
+              <div class="set-group">
+                <div class="gt">渠道与语言</div>
+                <div class="frm"><span class="fl">翻译渠道</span><span class="sel">DeepL <i>▾</i></span></div>
+                <div class="frm"><span class="fl">对方语音</span><span class="sel">英语（英国） <i>▾</i></span></div>
+                <div class="frm"><span class="fl">我的语言</span><span class="sel">中文 <i>▾</i></span></div>
+              </div>
+            </div>
+            <div class="set-col">
+              <div class="set-group">
+                <div class="gt">常用配置</div>
+                <div class="frm"><span class="fl">接收自动翻译</span><button class="tgl on" data-cfg="autoRecv"></button></div>
+                <div class="frm"><span class="fl">发送自动翻译</span><button class="tgl on" data-cfg="autoSend"></button></div>
+                <div class="frm"><span class="fl">群聊翻译显示</span><button class="tgl" data-cfg="grpShow"></button></div>
+                <div class="frm"><span class="fl">群聊自动翻译</span><button class="tgl" data-cfg="grpAuto"></button></div>
+                <div class="frm"><span class="fl">个人历史翻译<span class="q">ⓘ</span></span><button class="tgl" data-cfg="histPerson"></button></div>
+                <div class="frm"><span class="fl">群组历史翻译</span><button class="tgl" data-cfg="histGroup"></button></div>
+                <div class="frm"><span class="fl">繁体中文</span><button class="tgl on" data-cfg="traditional"></button></div>
+                <div class="frm"><span class="fl">发送确认</span><button class="tgl" data-cfg="sendConfirm"></button></div>
+              </div>
+            </div>
+            <div class="set-col">
+              <div class="set-group">
+                <div class="gt">显示样式</div>
+                <div class="frm"><span class="fl">字体大小</span><span class="stepper" data-cfg="fontSize"><b>−</b><em>11</em><b>+</b></span></div>
+                <div class="frm"><span class="fl">译文背景</span><span class="cblk">✕</span></div>
+                <div class="frm"><span class="fl">译文颜色</span><span class="cblk">✕</span></div>
+                <div class="frm"><span class="fl">个人翻译显示</span><button class="tgl on" data-cfg="personShow"></button></div>
+              </div>
+              <div class="set-group">
+                <div class="gt">智能与通知</div>
+                <div class="frm"><span class="fl">推荐回复</span><button class="tgl on" data-cfg="suggest"></button></div>
+                <div class="frm"><span class="fl">消息通知</span><button class="tgl on" data-cfg="notify"></button></div>
+                <div class="frm"><span class="fl">推荐回复条数</span><span class="stepper" data-cfg="suggestCount"><b>−</b><em>5</em><b>+</b></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="set-foot">
+            <span class="hint">V1 为接口预留壳：控件可操作，保存仅写入本地配置缓存（WATranslateSettings.save），不产生实际翻译效果</span>
+            <button class="btn" id="setCancel">取消</button>
+            <button class="btn primary" id="setSave">保存修改</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const TABS = [
+  {k:'loading', n:'① 加载中'},
+  {k:'qr',      n:'② 未绑定（二维码）'},
+  {k:'chat',    n:'③ 已连接'},
+  {k:'offline', n:'④ 连接异常'},
+  {k:'fail',    n:'⑤ 加载失败'},
+  {k:'netfail', n:'⑥ 网络不可达'},
+  {k:'unbind',  n:'⑦ 解绑确认'},
+  {k:'settings',n:'⑧ 翻译设置弹窗'}
+];
+
+const MEMO = '+86 138****1234 · 张三';
+const TAG = '<div class="canvas-tag">官方页面渲染区（我方不控制）</div>';
+
+function fakeQR(){
+  const n=25, c=4;
+  let out='';
+  const finder=(x,y)=>
+    '<rect x="'+x*c+'" y="'+y*c+'" width="'+7*c+'" height="'+7*c+'" fill="#111"/>'+
+    '<rect x="'+(x+1)*c+'" y="'+(y+1)*c+'" width="'+5*c+'" height="'+5*c+'" fill="#fff"/>'+
+    '<rect x="'+(x+2)*c+'" y="'+(y+2)*c+'" width="'+3*c+'" height="'+3*c+'" fill="#111"/>';
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    if((i<8&&j<8)||(i>n-9&&j<8)||(i<8&&j>n-9))continue;
+    if(Math.random()>.52) out+='<rect x="'+i*c+'" y="'+j*c+'" width="'+c+'" height="'+c+'" fill="#111"/>';
+  }
+  return '<svg viewBox="0 0 '+n*c+' '+n*c+'" width="148" height="148">'+finder(0,0)+finder(n-7,0)+finder(0,n-7)+out+'</svg>';
+}
+
+const chatGhost =
+  '<div class="chat"><div class="chat-list">'+
+  '<div class="row"><span class="circ"></span><span class="stack"><span class="ghost h20"></span><span class="ghost" style="width:70%"></span></span></div>'+
+  '<div class="row"><span class="circ"></span><span class="stack"><span class="ghost h20"></span><span class="ghost" style="width:55%"></span></span></div>'+
+  '<div class="row"><span class="circ"></span><span class="stack"><span class="ghost h20"></span><span class="ghost" style="width:80%"></span></span></div>'+
+  '<div class="row"><span class="circ"></span><span class="stack"><span class="ghost h20"></span><span class="ghost" style="width:62%"></span></span></div>'+
+  '</div><div class="chat-main">'+
+  '<div class="bubble">Hello, are you the supplier of the pickup trucks?</div>'+
+  '<div class="bubble me">Yes. Which model are you looking at?</div>'+
+  '<div class="bubble">Could you share the price list in FOB?</div>'+
+  '</div></div>';
+
+const chatGhostDim =
+  '<div class="chat" style="opacity:.35"><div class="chat-list">'+
+  '<div class="row"><span class="circ"></span><span class="stack"><span class="ghost h20"></span><span class="ghost" style="width:70%"></span></span></div>'+
+  '<div class="row"><span class="circ"></span><span class="stack"><span class="ghost h20"></span><span class="ghost" style="width:55%"></span></span></div>'+
+  '</div><div class="chat-main"><div class="bubble">Hello, are you the supplier…</div></div></div>';
+
+const SCENES = {
+  loading: {
+    status:'load', memo:false, float:false, rail:true,
+    stage: TAG+'<div class="embed with-rail"><div class="state-loading">'+
+      '<div class="spinner"></div>'+
+      '<div class="t1">正在打开 WhatsApp…</div>'+
+      '<div class="t2">首次加载需要拉取页面资源，请稍候</div>'+
+      '</div></div>'+
+      '<div class="scenote"><b>M1 加载中</b> · 导航圆点同步转黄；10 秒后文案改为「仍在加载，网络可能较慢…」并露出「重试」按钮（FR-3.8）；右侧功能栏此态已可见</div>'
+  },
+  qr: {
+    status:'ok', memo:false, float:false, rail:true,
+    stage: TAG+'<div class="embed with-rail"><div class="qr-wrap">'+
+      '<div class="qr-card">'+fakeQR()+'</div>'+
+      '<div class="qr-tip">使用手机 WhatsApp 扫描此二维码登录</div>'+
+      '<div class="qr-steps">1. 在手机上打开 <b>WhatsApp</b><br>2. 点击菜单或设置，选择 <b>已关联的设备</b><br>3. 点击 <b>关联设备</b>，将手机对准此屏幕</div>'+
+      '</div></div>'+
+      '<div class="scenote"><b>M2 未绑定</b> · 二维码、刷新倒计时、扫码中间态全部由官方页面自行处理（FR-3.2 / 3.5 / 3.6）；翻译设置为模块级配置，未绑定时也可打开（IX-7.3）</div>'
+  },
+  chat: {
+    status:'ok', memo:true, float:false, rail:true,
+    stage: TAG+'<div class="embed with-rail">'+chatGhost+'</div>'+
+      '<div class="scenote vio"><b>M3 已连接</b> · 聊天界面由官方页面渲染，我方不注入、不读取；右缘紫色功能栏为<b>我方 UI</b>：翻译设置可用，客户信息 / 快捷消息为预留禁用（FR-3.19）</div>'
+  },
+  offline: {
+    status:'err', memo:true, float:true, rail:true,
+    stage: TAG+'<div class="embed with-rail">'+chatGhostDim+'</div>'+
+      '<div class="scenote"><b>连接异常</b> · 导航圆点转红 + 顶部浮条；后台按 5s / 15s / 30s 退避重连，三次失败后浮条露出「立即重试」（FR-3.13 / 3.14）</div>'
+  },
+  fail: {
+    status:'err', memo:true, float:false, rail:false,
+    stage: TAG+'<div class="embed"><div class="state-loading">'+
+      '<div class="t1">页面加载失败</div>'+
+      '<div class="t2">无法打开 WhatsApp 页面，请检查网络后重试</div>'+
+      '<div style="display:flex; gap:8px; margin-top:6px"><button class="btn" style="background:var(--primary); border-color:var(--primary); color:#fff">重新加载</button><button class="btn">查看网络设置</button></div>'+
+      '</div></div>'+
+      '<div class="scenote"><b>M4 故障覆盖层</b> · 故障态下右侧功能栏隐藏，避免误操作（IX-7.1 / 5.5 显隐规则）</div>'
+  },
+  netfail: {
+    status:'err', memo:true, float:false, rail:false,
+    stage: TAG+'<div class="embed"><div class="state-loading">'+
+      '<div class="t1">网络连接异常</div>'+
+      '<div class="t2">当前网络无法访问 WhatsApp 服务</div>'+
+      '<div class="t2 warn">请联系管理员确认办公网络的境外访问条件</div>'+
+      '<div style="display:flex; gap:8px; margin-top:6px"><button class="btn" style="background:var(--primary); border-color:var(--primary); color:#fff">重试</button></div>'+
+      '</div></div>'+
+      '<div class="scenote"><b>M4 故障覆盖层</b> · 网络不可达是 V1 预计最高频的故障，文案需指向可执行的下一步</div>'
+  },
+  unbind: {
+    status:'ok', memo:true, float:false, rail:true,
+    stage: TAG+'<div class="embed with-rail">'+chatGhost+'</div>'+
+      '<div class="overlay"><div class="card">'+
+      '<div class="card-head"><span>解除 WhatsApp 绑定</span><span class="x">✕</span></div>'+
+      '<div class="card-body">解除后本机将清除登录状态，需要重新用手机扫码才能再次使用。<br><br><strong>聊天记录不受影响</strong>，仍完整保留在手机和官方服务器中。</div>'+
+      '<div class="card-foot"><button class="btn">取消</button><button class="btn danger">确认解除</button></div>'+
+      '</div></div>'+
+      '<div class="scenote"><b>O1 解绑确认</b> · 入口在导航 ⋯ 菜单；必须写明「聊天记录不受影响」，否则销售不敢点（FR-3.17）</div>'
+  },
+  settings: {
+    status:'ok', memo:true, float:false, rail:true,
+    stage: TAG+'<div class="embed with-rail">'+chatGhost+'</div>'+
+      '<div class="scenote vio"><b>O4 翻译设置弹窗</b> · 由右侧功能栏「翻译设置」进入；<b>接口预留壳</b>：控件可操作、保存落本地缓存（FR-3.20 / 3.21），翻译功能本身后续版本接入，弹窗结构冻结</div>'
+  }
+};
+
+const tabsEl = document.getElementById('tabs');
+const stageEl = document.getElementById('stage');
+const navDot = document.getElementById('navDot');
+const acctLine = document.getElementById('acctLine');
+const floatBar = document.getElementById('floatBar');
+const moreMenu = document.getElementById('moreMenu');
+const moreBtn = document.getElementById('moreBtn');
+const dotTip = document.getElementById('dotTip');
+const railEl = document.getElementById('rail');
+const setOverlay = document.getElementById('setOverlay');
+
+let cur = 'qr';
+
+function toast(msg){
+  let t = document.querySelector('.toast');
+  if(t) t.remove();
+  t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.querySelector('.content').appendChild(t);
+  setTimeout(()=>t.remove(), 2600);
+}
+
+function render(k){
+  cur = k;
+  const s = SCENES[k];
+  [...tabsEl.children].forEach(b=>b.classList.toggle('on', b.dataset.k===k));
+  navDot.className = 'dot ' + s.status;
+  acctLine.textContent = s.memo ? MEMO : '点击设置备注';
+  acctLine.classList.toggle('set', !s.memo);
+  floatBar.classList.toggle('show', !!s.float);
+  railEl.classList.toggle('show', !!s.rail);
+  moreMenu.classList.remove('show');
+  moreMenu.querySelector('[data-act="unbind"]').disabled = !s.memo;
+  stageEl.innerHTML = s.stage;
+  if(k==='settings') setOverlay.classList.add('show');
+}
+
+/* ===== 预留接口（V1.3：契约冻结，实现为本地缓存桩） ===== */
+const WATranslateSettings = {
+  _cache: null,
+  get(){ return Promise.resolve(this._cache || {memo:'Gavin', enabled:false, order:1, autoRecv:true, autoSend:true}); },
+  save(cfg){ this._cache = cfg; return Promise.resolve({ok:true, persisted:'local-only'}); },
+  reset(){ return Promise.resolve(); }
+};
+
+TABS.forEach(t=>{
+  const b=document.createElement('button');
+  b.className='tab'; b.dataset.k=t.k; b.textContent=t.n;
+  b.onclick=()=>render(t.k);
+  tabsEl.appendChild(b);
+});
+
+moreBtn.addEventListener('click', e=>{
+  e.stopPropagation();
+  moreMenu.classList.toggle('show');
+});
+document.addEventListener('click', ()=>moreMenu.classList.remove('show'));
+moreMenu.addEventListener('click', e=>{
+  const act = e.target.dataset.act;
+  if(!act) return;
+  moreMenu.classList.remove('show');
+  if(act==='reload') render('loading');
+  if(act==='unbind') render('unbind');
+  if(act==='memo'){
+    const v = prompt('设置账号备注（系统无法自动读取号码）：', MEMO);
+    if(v && v.trim()){ acctLine.textContent = v.trim(); }
+  }
+});
+navDot.addEventListener('mouseenter', ()=>dotTip.classList.add('show'));
+navDot.addEventListener('mouseleave', ()=>dotTip.classList.remove('show'));
+acctLine.addEventListener('click', ()=>{
+  if(!acctLine.classList.contains('set')) return;
+  const v = prompt('修改账号备注：', acctLine.textContent);
+  if(v && v.trim()){ acctLine.textContent = v.trim(); }
+});
+
+/* ===== 右侧功能栏 ===== */
+railEl.querySelector('#railTranslate').addEventListener('click', ()=>setOverlay.classList.add('show'));
+railEl.querySelectorAll('.rail-item.disabled').forEach(b=>{
+  b.addEventListener('click', ()=>toast(b.dataset.soon + ' · 即将上线（V2 预留入口）'));
+});
+
+/* ===== O4 弹窗：控件可操作，保存走预留接口 ===== */
+setOverlay.querySelectorAll('.tgl').forEach(t=>{
+  t.addEventListener('click', ()=>t.classList.toggle('on'));
+});
+setOverlay.querySelectorAll('.stepper').forEach(s=>{
+  const em = s.querySelector('em');
+  const [minus, plus] = s.querySelectorAll('b');
+  minus.addEventListener('click', ()=>{ em.textContent = Math.max(0, parseInt(em.textContent,10)-1); });
+  plus.addEventListener('click', ()=>{ em.textContent = parseInt(em.textContent,10)+1; });
+});
+function closeSettings(){ setOverlay.classList.remove('show'); if(cur==='settings') render('chat'); }
+setCloseAction();
+function setCloseAction(){
+  document.getElementById('setCancel').onclick = ()=>{ closeSettings(); toast('已取消，未保存'); };
+  document.getElementById('setClose').onclick = ()=>{ closeSettings(); toast('已取消，未保存'); };
+}
+document.getElementById('setSave').onclick = ()=>{
+  const cfg = {memo: 'Gavin'};
+  setOverlay.querySelectorAll('.tgl').forEach(t=>{ cfg[t.dataset.cfg] = t.classList.contains('on'); });
+  setOverlay.querySelectorAll('.stepper').forEach(s=>{ cfg[s.dataset.cfg] = parseInt(s.querySelector('em').textContent,10); });
+  WATranslateSettings.save(cfg).then(r=>{
+    closeSettings();
+    toast('设置已保存（接口预留：仅本地缓存，功能后续版本生效）');
+  });
+};
+setOverlay.addEventListener('click', e=>{ if(e.target===setOverlay) closeSettings(); });
+
+render('qr');
+</script>
+</body>
+</html>

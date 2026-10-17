@@ -1,78 +1,31 @@
-# ---------- 依赖 ----------
 node_modules/
-.pnpm-store/
-vendor/
-__pypackages__/
-
-# ---------- 构建产物 ----------
 dist/
-build/
 out/
 release/
-*.tsbuildinfo
-.target/
-.venv/
-venv/
-env/
-
-# ---------- 日志与缓存 ----------
+release-tmp*/
+release-v*/
+*-unpacked*/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.cache/
-.parcel-cache/
-.temp/
-tmp/
-coverage/
-.nyc_output/
+.DS_Store
+Thumbs.db
 
-# ---------- 环境变量与密钥 ----------
+# 本地环境变量：只提交 .env.example，其余本地文件不入库
 .env
-.env.*
-!.env.example
-*.pem
-*.key
-secrets.json
+.env.local
+.env.*.local
 
-# ---------- WhatsApp 登录凭证（等价于密钥，绝不能入库） ----------
-.wa-auth/
-*.wa-auth/
-wa-auth/
-
-# ---------- Python ----------
-__pycache__/
-*.py[cod]
-*.egg-info/
-.eggs/
-.pytest_cache/
-.mypy_cache/
-.ipynb_checkpoints/
-
-# ---------- 硬件 / 嵌入式 ----------
-*.hex
-*.bin
-*.elf
-*.map
-*.o
-*.a
-*.d
-build/*.uf2
-
-# ---------- 编辑器与 IDE ----------
+# 编辑器
 .vscode/*
 !.vscode/extensions.json
 .idea/
-*.swp
-*.swo
-*.sublime-workspace
 
-# ---------- 操作系统 ----------
-.DS_Store
-Thumbs.db
-desktop.ini
-*~
+# 测试产物
+# 端到端失败时的截图/轨迹（可能含测试时的界面内容）
+tests/e2e/.artifacts/
 
-# ---------- 工具 ----------
+# WorkBuddy 本机工作笔记（非项目代码，不入库）
 .workbuddy/
+
+# 真机抓下来的 WhatsApp DOM 快照：含客户号码与消息正文，**不要入库**。
+# 结构与抓取办法见 tests/dom/fixtures/whatsapp/README.md
+tests/dom/fixtures/whatsapp/real-*.html

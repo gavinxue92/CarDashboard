@@ -1,18 +1,46 @@
 {
-  "name": "cardashboard",
+  "name": "car-dashboard",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "workspaces": [
-    "server",
-    "shell"
-  ],
+  "description": "海外获客沟通工作台 · V1 单机客户端（Electron）",
+  "packageManager": "pnpm@12.11.2",
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=22.12.0"
   },
   "scripts": {
-    "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present"
+    "dev": "cd apps/desktop && electron-vite dev",
+    "build": "cd apps/desktop && electron-vite build && node ../../scripts/check-preload.mjs",
+    "preview": "cd apps/desktop && electron-vite preview",
+    "pack:win": "pnpm run build && node scripts/pack-win.mjs",
+    "pack:win:fallback": "pnpm run build && node scripts/pack-win.mjs --config.directories.output=release-tmp",
+    "pack:win:only": "node scripts/pack-win.mjs --config.directories.output=release-tmp",
+    "verify:release": "node scripts/verify-release.mjs",
+    "typecheck": "pnpm run typecheck:shared && pnpm run typecheck:node && pnpm run typecheck:preload && pnpm run typecheck:web && pnpm run typecheck:test",
+    "typecheck:shared": "tsc --noEmit -p packages/shared/tsconfig.json",
+    "typecheck:node": "tsc --noEmit -p apps/desktop/tsconfig.node.json",
+    "typecheck:preload": "tsc --noEmit -p apps/desktop/tsconfig.preload.json",
+    "typecheck:web": "vue-tsc --noEmit -p apps/desktop/tsconfig.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "test": "pnpm run test:unit && pnpm run test:dom",
+    "test:unit": "vitest run tests/unit --passWithNoTests",
+    "test:dom": "vitest run tests/dom --passWithNoTests",
+    "test:e2e": "playwright test --pass-with-no-tests",
+    "test:watch": "vitest --passWithNoTests",
+    "clean": "node -e \"const fs=require('node:fs');for(const d of ['apps/desktop/out','apps/desktop/release'])fs.rmSync(d,{recursive:true,force:true})\"",
+    "postinstall": "node node_modules/electron/install.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^24.0.0",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "electron": "44.7.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "jsdom": "^30.1.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.4",
+    "vue": "^3.5.44",
+    "vue-tsc": "^3.3.13"
   }
 }

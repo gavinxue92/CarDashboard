@@ -1,0 +1,6 @@
+{
+  "name": "@cd/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "共享构建配置（tsconfig 基座）"
+}

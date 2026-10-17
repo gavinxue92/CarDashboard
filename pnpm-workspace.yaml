@@ -1,0 +1,33 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# 依赖布局：平铺（npm 式），不使用符号链接。
+#
+# 原因：pnpm 默认的隔离布局要在 node_modules 下建立大量 symlink，
+# 而 Windows 非开发者模式下建 symlink 需要管理员权限，一旦失败会表现为
+# 「.bin 里的命令在、但它指向的包目录不存在」，依赖解析随之全盘失效。
+# 平铺布局不依赖 symlink，代价是失去 pnpm 的严格隔离——本项目不需要那层隔离。
+nodeLinker: hoisted
+
+# pnpm 默认阻止依赖的构建脚本。electron 需要 postinstall 下载二进制，
+# esbuild 需要 postinstall 落平台包，electron-winstaller 打包时用。
+# 只放行这三个，其余一律不执行。
+allowBuilds:
+  electron: true
+  esbuild: true
+  electron-winstaller: true
+
+# 下面这些是 pnpm 在解析时自动补记的：这几个版本发布未满默认冷静期，
+# 经确认后放行（非人工维护项）。
+minimumReleaseAgeExclude:
+  - '@vue/compiler-core@3.5.44'
+  - '@vue/compiler-dom@3.5.44'
+  - '@vue/compiler-sfc@3.5.44'
+  - '@vue/compiler-ssr@3.5.44'
+  - '@vue/reactivity@3.5.44'
+  - '@vue/runtime-core@3.5.44'
+  - '@vue/runtime-dom@3.5.44'
+  - '@vue/server-renderer@3.5.44'
+  - '@vue/shared@3.5.44'
+  - vue@3.5.44

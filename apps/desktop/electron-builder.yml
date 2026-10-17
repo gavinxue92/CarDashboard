@@ -1,0 +1,48 @@
+# 应用构建与打包配置（技术方案 6.1 / 6.2）
+#
+# 本版无服务端、无自动更新：产物是 NSIS 安装包，本地打包后直接分发。
+
+appId: com.cd.car-dashboard
+productName: CarDashboard
+executableName: CarDashboard
+copyright: Copyright © 2026
+
+directories:
+  output: release
+  buildResources: build
+
+# 只打包构建产物与清单，源码与配置不进安装包
+files:
+  - out/**/*
+  - package.json
+
+# ⚠️ 注入脚本必须解出 asar 之外，落成磁盘上的真实文件。
+#
+# 理由：它跑在**沙箱渲染进程**里，沙箱下 preload 的加载路径比普通 preload 苛刻得多
+# （连 `require('./本地文件')` 都不允许，见 scripts/check-preload.mjs）。
+# asar 归档内的 preload 在多数 Electron 版本下能加载，但这条路一旦在某个版本上
+# 走不通，表现就是「装出来的包不翻译，dev 里一切正常」——排查代价极高。
+# 解出来只多几百 KB，把这一类不确定性直接消掉。
+asarUnpack:
+  - out/preload/**
+
+# 本版无代码签名（已确认决策）：接受首次安装的 SmartScreen 告警，
+# 由交付说明给出引导步骤 + 附带 SHA-256 校验和。
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: CarDashboard-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 海外获客沟通工作台
+  # ⚠️ 已确认决策 D7：卸载即清除全部数据（含 WhatsApp 登录态与账号备注），
+  # 重装后需要重新扫码。这一点必须写进交付说明，避免被当成故障。
+  deleteAppDataOnUninstall: true

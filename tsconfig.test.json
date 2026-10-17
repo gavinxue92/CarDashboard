@@ -1,0 +1,23 @@
+{
+  "extends": "./packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@cd/shared": ["packages/shared/src/index.ts"],
+      "@main/*": ["apps/desktop/src/main/*"],
+      "@preload/*": ["apps/desktop/src/preload/*"],
+      "@renderer/*": ["apps/desktop/src/renderer/src/*"]
+    }
+  },
+  "//": "测试代码单独一项类型检查：测试也要受类型约束，否则测试自己写错字段名时会静默假绿。含 DOM lib 是因为渲染层与注入脚本的用例跑在 jsdom 里。",
+  "//globals": "globals.d.ts 必须显式列入：测试通过 @main/* 导入主进程模块时，会连带引用构建期常量（__WA_PROXY__ / __LOG_LEVEL__ / __TRANSLATE_KEY__），不声明就是一堆「找不到名称」。",
+  "include": [
+    "tests/**/*.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "apps/desktop/src/main/globals.d.ts"
+  ]
+}

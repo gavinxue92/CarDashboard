@@ -1,0 +1,15 @@
+{
+  "extends": "../../packages/config/tsconfig.web.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@cd/shared": ["../../packages/shared/src/index.ts"],
+      "@renderer/*": ["src/renderer/src/*"]
+    }
+  },
+  "include": [
+    "src/renderer/src/**/*.ts",
+    "src/renderer/src/**/*.d.ts",
+    "src/renderer/src/**/*.vue"
+  ]
+}

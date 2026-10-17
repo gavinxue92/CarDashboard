@@ -1,0 +1,11 @@
+{
+  "extends": "../../packages/config/tsconfig.node.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@cd/shared": ["../../packages/shared/src/index.ts"]
+    }
+  },
+  "//": "主进程刻意**不含 DOM lib**：它跑在 Node 里，用不到 document/window。缺了 DOM 类型，一旦误在主进程里写 DOM 调用会立刻在类型检查阶段暴露。preload 需要 DOM（要操作注入页面的节点），因此单独放在 tsconfig.preload.json。",
+  "include": ["src/main/**/*.ts", "electron.vite.config.ts"]
+}
